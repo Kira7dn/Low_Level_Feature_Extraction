@@ -1,0 +1,243 @@
+# Task ID: 8
+# Title: Implement Error Handling and Input Validation
+# Status: pending
+# Dependencies: 1, 2, 3, 4, 5, 6, 7
+# Priority: high
+# Description: Enhance the API with comprehensive error handling, input validation, and meaningful error messages for all endpoints.
+# Details:
+1. Create a custom error handling module in `/app/utils/error_handler.py`:
+```python
+from fastapi import Request, status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+import traceback
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class APIError(Exception):
+    """Custom API error class"""
+    def __init__(self, status_code: int, detail: str, code: str = None):
+        self.status_code = status_code
+        self.detail = detail
+        self.code = code
+        super().__init__(self.detail)
+
+async def api_error_handler(request: Request, exc: APIError):
+    """Handler for custom API errors"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code or "api_error",
+                "message": exc.detail,
+                "status": exc.status_code
+            }
+        }
+    )
+
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handler for HTTP exceptions"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": "http_error",
+                "message": str(exc.detail),
+                "status": exc.status_code
+            }
+        }
+    )
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handler for request validation errors"""
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": {
+                "code": "validation_error",
+                "message": "Invalid request parameters",
+                "details": exc.errors(),
+                "status": status.HTTP_422_UNPROCESSABLE_ENTITY
+            }
+        }
+    )
+
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handler for unhandled exceptions"""
+    # Log the error with traceback
+    logger.error(f"Unhandled exception: {str(exc)}")
+    logger.error(traceback.format_exc())
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": {
+                "code": "internal_server_error",
+                "message": "An unexpected error occurred",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR
+            }
+        }
+    )
+```
+
+2. Update the image validation utility in `/app/utils/image_validator.py` with more comprehensive checks:
+```python
+from fastapi import UploadFile, HTTPException
+from ..utils.error_handler import APIError
+import imghdr
+import io
+from PIL import Image
+
+ALLOWED_EXTENSIONS = {"png", "jpeg", "jpg", "bmp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_DIMENSIONS = (4000, 4000)  # Maximum width and height
+
+async def validate_image(file: UploadFile):
+    """Validate image file for format, size, and content"""
+    if not file:
+        raise APIError(status_code=400, detail="No file provided", code="missing_file")
+    
+    # Check file extension
+    if not file.filename:
+        raise APIError(status_code=400, detail="File has no filename", code="invalid_filename")
+    
+    ext = file.filename.split(".")[-1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise APIError(
+            status_code=400, 
+            detail=f"File format not supported. Allowed formats: {', '.join(ALLOWED_EXTENSIONS)}",
+            code="invalid_format"
+        )
+    
+    # Check file size
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise APIError(
+            status_code=400, 
+            detail=f"File size exceeds the limit of 5MB",
+            code="file_too_large"
+        )
+    
+    # Validate image content type
+    file_type = imghdr.what(None, h=contents)
+    if not file_type or file_type not in ALLOWED_EXTENSIONS:
+        raise APIError(
+            status_code=400, 
+            detail="Invalid image content",
+            code="invalid_image"
+        )
+    
+    # Check image dimensions
+    try:
+        img = Image.open(io.BytesIO(contents))
+        width, height = img.size
+        if width > MAX_DIMENSIONS[0] or height > MAX_DIMENSIONS[1]:
+            raise APIError(
+                status_code=400, 
+                detail=f"Image dimensions exceed the maximum allowed ({MAX_DIMENSIONS[0]}x{MAX_DIMENSIONS[1]})",
+                code="image_too_large"
+            )
+    except Exception as e:
+        raise APIError(
+            status_code=400, 
+            detail=f"Error processing image: {str(e)}",
+            code="image_processing_error"
+        )
+    
+    # Reset file pointer for further processing
+    await file.seek(0)
+    
+    return contents
+```
+
+3. Update the main.py file to include the error handlers:
+```python
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.routers import colors, text, shapes, shadows, fonts
+from app.utils.error_handler import (
+    APIError, 
+    api_error_handler, 
+    http_exception_handler, 
+    validation_exception_handler,
+    general_exception_handler
+)
+
+app = FastAPI(
+    title="Low-Level Feature Extraction API",
+    description="API for extracting design elements from images",
+    version="1.0.0"
+)
+
+# Register error handlers
+app.add_exception_handler(APIError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+# Register routers
+app.include_router(colors.router, tags=["colors"])
+app.include_router(text.router, tags=["text"])
+app.include_router(shapes.router, tags=["shapes"])
+app.include_router(shadows.router, tags=["shadows"])
+app.include_router(fonts.router, tags=["fonts"])
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Low-Level Feature Extraction API"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+```
+
+4. Update each router to use the new error handling system by replacing direct HTTPException raises with APIError raises.
+
+# Test Strategy:
+1. Test all endpoints with invalid file formats and verify appropriate error responses
+2. Test with oversized files and verify size limit enforcement
+3. Test with malformed image files and verify content validation
+4. Test with missing files and verify error handling
+5. Test with images exceeding maximum dimensions
+6. Verify that all error responses follow the defined JSON structure
+7. Test error handling for each specific endpoint with various error conditions
+8. Verify that validation errors return appropriate 422 status codes
+9. Test with malicious inputs to ensure security measures are effective
+10. Verify that internal server errors are properly logged and return sanitized responses
+
+# Subtasks:
+## 1. Design Custom Exception Hierarchy [pending]
+### Dependencies: None
+### Description: Create a comprehensive exception hierarchy for the application with base and specialized exception classes
+### Details:
+Define a base ApiException class that extends HTTPException, then create domain-specific exceptions (e.g., ValidationException, AuthorizationException, ResourceNotFoundException, BusinessLogicException). Include appropriate status codes, error codes, and customizable detail messages for each exception type.
+
+## 2. Implement Global Exception Handlers [pending]
+### Dependencies: 8.1
+### Description: Create exception handlers for all custom exceptions and register them with FastAPI
+### Details:
+Develop exception handler functions for each exception type that return consistent JSON responses with appropriate status codes, error messages, error codes, and timestamps. Register these handlers with the FastAPI application using @app.exception_handler decorators. Include handling for unexpected exceptions (500 errors) with appropriate logging.
+
+## 3. Develop Image Validation System [pending]
+### Dependencies: 8.1
+### Description: Create comprehensive validation for image uploads including format, size, and content validation
+### Details:
+Implement validators for image format (JPEG, PNG, etc.), file size limits, dimensions, aspect ratio, and potentially content safety. Create custom exceptions for each validation failure case with descriptive error messages. Integrate with the exception handling system to provide clear feedback to API users.
+
+## 4. Update API Routers with New Error Handling [pending]
+### Dependencies: 8.1, 8.2
+### Description: Refactor existing route handlers to use the new exception system
+### Details:
+Replace all instances of direct HTTPException usage with appropriate custom exceptions. Update input validation logic to raise specific exceptions with descriptive messages. Ensure consistent error handling patterns across all API endpoints. Consider implementing dependencies for common validation scenarios.
+
+## 5. Create Comprehensive Tests for Error Scenarios [pending]
+### Dependencies: 8.1, 8.2, 8.3, 8.4
+### Description: Develop tests to verify all error handling paths function correctly
+### Details:
+Create unit tests for each custom exception and handler. Develop integration tests that verify the complete error handling flow from API request to response. Include tests for validation failures, business logic errors, authentication/authorization failures, and unexpected exceptions. Verify response format consistency and appropriate status codes.
+

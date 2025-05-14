@@ -1,0 +1,264 @@
+# Task ID: 9
+# Title: Implement API Documentation and Testing
+# Status: pending
+# Dependencies: 1, 2, 3, 4, 5, 6, 7, 8
+# Priority: medium
+# Description: Create comprehensive API documentation using FastAPI's built-in Swagger UI and implement automated tests for all endpoints.
+# Details:
+1. Enhance API documentation in main.py:
+```python
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.routers import colors, text, shapes, shadows, fonts
+from app.utils.error_handler import (
+    APIError, 
+    api_error_handler, 
+    http_exception_handler, 
+    validation_exception_handler,
+    general_exception_handler
+)
+
+app = FastAPI(
+    title="Low-Level Feature Extraction API",
+    description="""A backend service designed to analyze design images and extract key visual elements.
+    
+    ## Features
+    
+    * **Color Palette Extraction**: Identify primary, background, and accent colors.
+    * **Font Detection**: Extract font family, size, and weight.
+    * **Shape Analysis**: Detect shapes and measure border radii.
+    * **Shadow Analysis**: Detect shadow intensity, spread, and direction.
+    * **Text Recognition**: Extract visible text from images.
+    
+    ## Usage
+    
+    Upload an image file to the respective endpoint to extract the desired features.
+    Supported formats: PNG, JPEG, BMP.
+    Maximum file size: 5MB.
+    """,
+    version="1.0.0",
+    docs_url=None,  # Disable default docs
+    redoc_url=None,  # Disable default redoc
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Custom docs endpoint with enhanced UI
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - API Documentation",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+    )
+
+# Register error handlers
+app.add_exception_handler(APIError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+# Register routers with enhanced documentation
+app.include_router(
+    colors.router,
+    prefix="/api/v1",
+    tags=["colors"],
+)
+
+app.include_router(
+    text.router,
+    prefix="/api/v1",
+    tags=["text"],
+)
+
+app.include_router(
+    shapes.router,
+    prefix="/api/v1",
+    tags=["shapes"],
+)
+
+app.include_router(
+    shadows.router,
+    prefix="/api/v1",
+    tags=["shadows"],
+)
+
+app.include_router(
+    fonts.router,
+    prefix="/api/v1",
+    tags=["fonts"],
+)
+
+@app.get("/", tags=["general"])
+async def root():
+    """Root endpoint returning API information"""
+    return {
+        "message": "Welcome to the Low-Level Feature Extraction API",
+        "version": "1.0.0",
+        "documentation": "/docs"
+    }
+
+@app.get("/health", tags=["general"])
+async def health_check():
+    """Health check endpoint for monitoring"""
+    return {"status": "healthy"}
+```
+
+2. Enhance router documentation (example for colors.py):
+```python
+from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from ..services.image_processor import ImageProcessor
+from ..services.color_extractor import ColorExtractor
+from ..utils.image_validator import validate_image
+from ..utils.error_handler import APIError
+from typing import Dict, List
+
+router = APIRouter()
+
+@router.post(
+    "/extract-colors",
+    response_model=Dict[str, object],
+    status_code=status.HTTP_200_OK,
+    summary="Extract color palette",
+    response_description="Color palette with primary, background, and accent colors"
+)
+async def extract_colors(file: UploadFile = File(...)):
+    """Extract the primary, background, and accent colors from an image.
+    
+    - **file**: Image file (PNG, JPEG, BMP)
+    
+    Returns a JSON object with:
+    - **primary**: Primary color in HEX format
+    - **background**: Background color in HEX format
+    - **accent**: List of accent colors in HEX format
+    
+    Example response:
+    ```json
+    {
+      "primary": "#007BFF",
+      "background": "#F0F0F0",
+      "accent": ["#FF6F61", "#FFD700"]
+    }
+    ```
+    """
+    try:
+        # Validate and load image
+        image_bytes = await validate_image(file)
+        cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        
+        # Extract color palette
+        palette = ColorExtractor.analyze_palette(cv_image)
+        
+        return palette
+    except APIError as e:
+        raise e
+    except Exception as e:
+        raise APIError(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error extracting colors: {str(e)}",
+            code="color_extraction_error"
+        )
+```
+
+3. Create test directory structure and setup:
+```
+/tests
+  /__init__.py
+  /conftest.py  # Test configuration
+  /test_colors.py
+  /test_fonts.py
+  /test_shapes.py
+  /test_shadows.py
+  /test_text.py
+  /test_api.py  # General API tests
+  /fixtures/  # Test images
+```
+
+4. Create conftest.py for test configuration:
+```python
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+import os
+
+@pytest.fixture
+def client():
+    """Create a test client for the FastAPI app"""
+    return TestClient(app)
+
+@pytest.fixture
+def test_image_path():
+    """Path to test image"""
+    return os.path.join(os.path.dirname(__file__), "fixtures", "test_image.png")
+
+@pytest.fixture
+def invalid_image_path():
+    """Path to invalid file"""
+    return os.path.join(os.path.dirname(__file__), "fixtures", "invalid.txt")
+```
+
+5. Create a sample test file (test_colors.py):
+```python
+import pytest
+from fastapi.testclient import TestClient
+
+def test_extract_colors_valid_image(client, test_image_path):
+    """Test color extraction with a valid image"""
+    with open(test_image_path, "rb") as f:
+        response = client.post(
+            "/api/v1/extract-colors",
+            files={"file": ("test_image.png", f, "image/png")}
+        )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "primary" in data
+    assert "background" in data
+    assert "accent" in data
+    assert isinstance(data["accent"], list)
+
+def test_extract_colors_invalid_format(client, invalid_image_path):
+    """Test color extraction with an invalid file format"""
+    with open(invalid_image_path, "rb") as f:
+        response = client.post(
+            "/api/v1/extract-colors",
+            files={"file": ("invalid.txt", f, "text/plain")}
+        )
+    
+    assert response.status_code == 400
+    data = response.json()
+    assert "error" in data
+    assert data["error"]["code"] == "invalid_format"
+
+def test_extract_colors_no_file(client):
+    """Test color extraction with no file"""
+    response = client.post("/api/v1/extract-colors")
+    
+    assert response.status_code in [400, 422]  # Either validation error or missing file error
+```
+
+6. Create a requirements-dev.txt file for development dependencies:
+```
+pytest==7.3.1
+pytest-cov==4.1.0
+black==23.3.0
+flake8==6.0.0
+```
+
+# Test Strategy:
+1. Create unit tests for each service module (color_extractor, text_extractor, etc.)
+2. Create integration tests for each API endpoint
+3. Test successful responses with valid inputs
+4. Test error responses with invalid inputs
+5. Test edge cases (empty images, images with no features to extract)
+6. Test performance with various image sizes
+7. Use pytest fixtures for common test data
+8. Implement test coverage reporting
+9. Verify API documentation is accurate and complete
+10. Test that all endpoints follow the specified response format

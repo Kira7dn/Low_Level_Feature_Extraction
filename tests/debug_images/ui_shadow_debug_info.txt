@@ -1,0 +1,8 @@
+Error: No shadow regions detected
+assert 'none' != 'none'
+Traceback:
+Traceback (most recent call last):
+  File "F:\WorkSpace\AI\Design AI Agent\Low_Level_Feature_Extraction\tests\test_shadows.py", line 641, in test_ui_element_shadows
+    assert data['intensity'] != 'none', "No shadow regions detected"
+AssertionError: No shadow regions detected
+assert 'none' != 'none'

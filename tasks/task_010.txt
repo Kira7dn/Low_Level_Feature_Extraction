@@ -1,0 +1,375 @@
+# Task ID: 10
+# Title: Implement Performance Optimization and Deployment
+# Status: pending
+# Dependencies: 1, 2, 3, 4, 5, 6, 7, 8, 9
+# Priority: medium
+# Description: Optimize the API for performance, implement caching, and prepare for deployment with Docker and configuration for scalability.
+# Details:
+1. Create a caching utility in `/app/utils/cache.py`:
+```python
+from functools import wraps
+import hashlib
+import json
+import time
+from typing import Dict, Any, Callable
+
+# Simple in-memory cache
+class SimpleCache:
+    def __init__(self, max_size=100, ttl=300):
+        """Initialize cache with max size and time-to-live (seconds)"""
+        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.max_size = max_size
+        self.ttl = ttl
+    
+    def get(self, key: str) -> Any:
+        """Get item from cache if it exists and is not expired"""
+        if key not in self.cache:
+            return None
+        
+        item = self.cache[key]
+        if time.time() > item["expires"]:
+            # Remove expired item
+            del self.cache[key]
+            return None
+        
+        return item["value"]
+    
+    def set(self, key: str, value: Any) -> None:
+        """Add item to cache with expiration"""
+        # If cache is full, remove oldest item
+        if len(self.cache) >= self.max_size:
+            oldest_key = min(self.cache.keys(), key=lambda k: self.cache[k]["expires"])
+            del self.cache[oldest_key]
+        
+        self.cache[key] = {
+            "value": value,
+            "expires": time.time() + self.ttl
+        }
+    
+    def clear(self) -> None:
+        """Clear all cache items"""
+        self.cache.clear()
+
+# Create global cache instance
+cache = SimpleCache()
+
+def cache_result(ttl=300):
+    """Decorator to cache function results"""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Create a cache key from function name and arguments
+            key_parts = [func.__name__]
+            # Add args and kwargs to key
+            for arg in args:
+                if hasattr(arg, "read"):
+                    # For file-like objects, hash the content
+                    pos = arg.tell()
+                    content = await arg.read()
+                    await arg.seek(pos)
+                    key_parts.append(hashlib.md5(content).hexdigest())
+                else:
+                    key_parts.append(str(arg))
+            
+            for k, v in sorted(kwargs.items()):
+                key_parts.append(f"{k}:{v}")
+            
+            cache_key = hashlib.md5(json.dumps(key_parts).encode()).hexdigest()
+            
+            # Check cache
+            result = cache.get(cache_key)
+            if result is not None:
+                return result
+            
+            # Execute function if not in cache
+            result = await func(*args, **kwargs)
+            
+            # Cache result
+            cache.set(cache_key, result)
+            
+            return result
+        return wrapper
+    return decorator
+```
+
+2. Apply caching to the API endpoints (example for colors.py):
+```python
+from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from ..services.image_processor import ImageProcessor
+from ..services.color_extractor import ColorExtractor
+from ..utils.image_validator import validate_image
+from ..utils.error_handler import APIError
+from ..utils.cache import cache_result
+from typing import Dict, List
+
+router = APIRouter()
+
+@router.post(
+    "/extract-colors",
+    response_model=Dict[str, object],
+    status_code=status.HTTP_200_OK,
+    summary="Extract color palette",
+    response_description="Color palette with primary, background, and accent colors"
+)
+@cache_result(ttl=600)  # Cache results for 10 minutes
+async def extract_colors(file: UploadFile = File(...)):
+    """Extract the primary, background, and accent colors from an image."""
+    try:
+        # Validate and load image
+        image_bytes = await validate_image(file)
+        cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        
+        # Extract color palette
+        palette = ColorExtractor.analyze_palette(cv_image)
+        
+        return palette
+    except APIError as e:
+        raise e
+    except Exception as e:
+        raise APIError(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error extracting colors: {str(e)}",
+            code="color_extraction_error"
+        )
+```
+
+3. Create a Dockerfile for containerization:
+```dockerfile
+# Use Python 3.9 slim image
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for OpenCV and Tesseract
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    tesseract-ocr \
+    libtesseract-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY ./app ./app
+COPY ./static ./static
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PORT=8000
+
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+4. Create a docker-compose.yml file for local development:
+```yaml
+version: '3'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+    environment:
+      - DEBUG=1
+      - MAX_WORKERS=4
+    restart: unless-stopped
+```
+
+5. Create a performance optimization module in `/app/utils/optimizer.py`:
+```python
+import cv2
+import numpy as np
+from PIL import Image
+import io
+
+class ImageOptimizer:
+    @staticmethod
+    def resize_if_needed(image, max_dimension=1200):
+        """Resize image if it's too large while maintaining aspect ratio"""
+        height, width = image.shape[:2]
+        
+        # If image is already small enough, return as is
+        if max(height, width) <= max_dimension:
+            return image
+        
+        # Calculate new dimensions
+        if width > height:
+            new_width = max_dimension
+            new_height = int(height * (max_dimension / width))
+        else:
+            new_height = max_dimension
+            new_width = int(width * (max_dimension / height))
+        
+        # Resize image
+        resized = cv2.resize(image, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        
+        return resized
+    
+    @staticmethod
+    def optimize_for_processing(image_bytes):
+        """Optimize image for processing to improve performance"""
+        # Load image
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        # Resize if needed
+        optimized = ImageOptimizer.resize_if_needed(image)
+        
+        return optimized
+```
+
+6. Update the image processor to use the optimizer:
+```python
+from PIL import Image
+import io
+import numpy as np
+import cv2
+from ..utils.optimizer import ImageOptimizer
+
+class ImageProcessor:
+    @staticmethod
+    def load_image(image_bytes):
+        """Load image from bytes into PIL Image"""
+        return Image.open(io.BytesIO(image_bytes))
+    
+    @staticmethod
+    def load_cv2_image(image_bytes):
+        """Load image from bytes into OpenCV format with optimization"""
+        return ImageOptimizer.optimize_for_processing(image_bytes)
+```
+
+7. Create a configuration module in `/app/config.py`:
+```python
+import os
+from pydantic import BaseSettings
+
+class Settings(BaseSettings):
+    """Application settings"""
+    # API settings
+    API_TITLE: str = "Low-Level Feature Extraction API"
+    API_VERSION: str = "1.0.0"
+    DEBUG: bool = os.getenv("DEBUG", "0") == "1"
+    
+    # Server settings
+    HOST: str = "0.0.0.0"
+    PORT: int = int(os.getenv("PORT", "8000"))
+    WORKERS: int = int(os.getenv("MAX_WORKERS", "4"))
+    
+    # Image processing settings
+    MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5MB
+    MAX_IMAGE_DIMENSION: int = 4000
+    OPTIMIZATION_DIMENSION: int = 1200
+    
+    # Cache settings
+    CACHE_TTL: int = 600  # 10 minutes
+    CACHE_MAX_SIZE: int = 100
+    
+    class Config:
+        env_file = ".env"
+
+# Create global settings instance
+settings = Settings()
+```
+
+8. Update main.py to use the configuration:
+```python
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.routers import colors, text, shapes, shadows, fonts
+from app.utils.error_handler import (
+    APIError, 
+    api_error_handler, 
+    http_exception_handler, 
+    validation_exception_handler,
+    general_exception_handler
+)
+from app.config import settings
+import uvicorn
+
+app = FastAPI(
+    title=settings.API_TITLE,
+    description="""A backend service designed to analyze design images and extract key visual elements.""",
+    version=settings.API_VERSION,
+    docs_url=None,
+    redoc_url=None,
+    debug=settings.DEBUG
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Custom docs endpoint
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - API Documentation",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+    )
+
+# Register error handlers
+app.add_exception_handler(APIError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+# Register routers
+app.include_router(colors.router, prefix="/api/v1", tags=["colors"])
+app.include_router(text.router, prefix="/api/v1", tags=["text"])
+app.include_router(shapes.router, prefix="/api/v1", tags=["shapes"])
+app.include_router(shadows.router, prefix="/api/v1", tags=["shadows"])
+app.include_router(fonts.router, prefix="/api/v1", tags=["fonts"])
+
+@app.get("/", tags=["general"])
+async def root():
+    """Root endpoint returning API information"""
+    return {
+        "message": "Welcome to the Low-Level Feature Extraction API",
+        "version": settings.API_VERSION,
+        "documentation": "/docs"
+    }
+
+@app.get("/health", tags=["general"])
+async def health_check():
+    """Health check endpoint for monitoring"""
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app", 
+        host=settings.HOST, 
+        port=settings.PORT,
+        workers=settings.WORKERS,
+        reload=settings.DEBUG
+    )
+```
+
+# Test Strategy:
+1. Benchmark API performance before and after optimization
+2. Test caching effectiveness by measuring response times for repeated requests
+3. Test with various image sizes to verify resizing optimization
+4. Load test the API to ensure it can handle concurrent requests
+5. Test Docker deployment in a local environment
+6. Verify that environment variables correctly override default settings
+7. Test memory usage under load to ensure there are no memory leaks
+8. Verify that the health check endpoint correctly reports system status
+9. Test API performance with and without caching enabled
+10. Verify that the Docker container starts correctly and the API is accessible
