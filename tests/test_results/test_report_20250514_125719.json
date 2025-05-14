@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-05-14T12:57:17.557669",
+  "endpoints": {
+    "colors": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 3,
+        "passed_tests": 0
+      }
+    },
+    "fonts": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 3,
+        "passed_tests": 0
+      }
+    },
+    "shadows": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 3,
+        "passed_tests": 1
+      }
+    },
+    "shapes": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 3,
+        "passed_tests": 0
+      }
+    },
+    "text": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 3,
+        "passed_tests": 0
+      }
+    }
+  }
+}

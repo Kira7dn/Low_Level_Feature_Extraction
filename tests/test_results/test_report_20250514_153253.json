@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-05-14T15:32:52.338230",
+  "endpoints": {
+    "fonts": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 1,
+        "passed_tests": 0
+      }
+    },
+    "shapes": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 1,
+        "passed_tests": 1
+      }
+    },
+    "text": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 4,
+        "passed_tests": 2
+      }
+    }
+  }
+}

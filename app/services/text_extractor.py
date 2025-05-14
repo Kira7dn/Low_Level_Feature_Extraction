@@ -28,31 +28,31 @@ class TextExtractor:
         )
         return normalized
 
-    @staticmethod
-    def preprocess_image(image):
-        """
-        Preprocess image for better OCR results
+    @classmethod
+    def preprocess_image(cls, image):
+        """Preprocess image for text detection
         
         Args:
             image: Input image
         
         Returns:
-            Preprocessed image ready for text extraction
+            Preprocessed binary image
         """
-        # Convert to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Convert to grayscale if not already
+        if len(image.shape) > 2 and image.shape[2] > 1:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image
         
         # Normalize image intensity
-        normalized = TextExtractor.normalize_image(gray)
+        normalized = cls.normalize_image(gray)
         
         # Apply adaptive thresholding for better text segmentation
         binary = cv2.adaptiveThreshold(
             normalized, 
             255, 
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-            cv2.THRESH_BINARY_INV, 
-            11, 
-            2
+            cv2.THRESH_BINARY_INV, 11, 2
         )
         
         # Apply dilation to connect text components
@@ -61,8 +61,8 @@ class TextExtractor:
         
         return dilated
     
-    @staticmethod
-    def extract_text(image, lang: str = 'eng', config: str = '--oem 3 --psm 6', confidence_threshold: float = 0.0) -> Dict[str, Any]:
+    @classmethod
+    def extract_text(cls, image, lang: str = 'eng', config: str = '--oem 3 --psm 6', confidence_threshold: float = 0.0) -> Dict[str, Any]:
         """
         Extract text from image using Tesseract OCR
         
@@ -75,7 +75,7 @@ class TextExtractor:
             Dictionary containing extracted text lines and their confidence scores
         """
         # Preprocess the image
-        processed_img = TextExtractor.preprocess_image(image)
+        processed_img = cls.preprocess_image(image)
         
         # Extract text with confidence using image_to_data
         data = pytesseract.image_to_data(processed_img, lang=lang, config=config, output_type=pytesseract.Output.DICT)

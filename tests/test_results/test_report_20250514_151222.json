@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-05-14T15:12:22.205329",
+  "endpoints": {
+    "text": {
+      "performance": {
+        "times": [],
+        "performance_ratings": []
+      },
+      "validation": {
+        "total_tests": 4,
+        "passed_tests": 1
+      }
+    }
+  }
+}

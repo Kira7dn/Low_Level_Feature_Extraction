@@ -1,7 +1,7 @@
 import logging
 import traceback
 from typing import Dict, Any
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 import imghdr
 import io
 
@@ -63,21 +63,141 @@ def log_error(exception: Exception, context: Dict[str, Any] = None):
     
     logger.error(f"Error occurred: {error_details}")
 
-def validate_image(file):
-    """Simple image validation for personal use"""
+async def validate_image(file):
+    # Ensure file is provided
+    if not file:
+        raise HTTPException(
+            status_code=400, 
+            detail={"error": {"message": "No file uploaded", "code": "NO_FILE"}}
+        )
+    
+    # Ensure file has expected attributes
+    if not hasattr(file, 'filename') or not hasattr(file, 'file'):
+        raise HTTPException(
+            status_code=400, 
+            detail={"error": {"message": "Invalid file type", "code": "INVALID_FILE_TYPE"}}
+        )
+    
+    # Debug logging
+    logger.info(f"Validating file: {file.filename}, Content-Type: {file.content_type}")
+    
+    # Predefined validation configurations
+    VALID_EXTENSIONS = ['.png', '.jpg', '.jpeg']
+    VALID_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
+    VALID_IMGHDR_TYPES = ['jpeg', 'png', 'jpg']
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+    
+    # Validate filename and content type
+    filename = file.filename.lower() if file.filename else ''
+    content_type = file.content_type.lower() if file.content_type else ''
+    """
+    Validate uploaded image file with comprehensive checks.
+    
+    Args:
+        file (UploadFile): Uploaded file to validate
+    
+    Raises:
+        HTTPException: For various validation failures
+    
+    Returns:
+        bytes: Validated file contents
+    """
+    # Predefined validation configurations
+    VALID_EXTENSIONS = ['.png', '.jpg', '.jpeg']
+    VALID_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
+    VALID_IMGHDR_TYPES = ['jpeg', 'png', 'jpg']
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+    
+    # Check if file is provided
+    if not file:
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": "No file uploaded. Please provide an image file.",
+                    "code": "NO_FILE_UPLOADED"
+                }
+            }
+        )
+    
+    # Validate filename
+    if not file.filename:
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid filename. Filename cannot be empty.",
+            headers={"X-Error-Code": "INVALID_FILENAME"}
+        )
+    
+    # Normalize filename and content type
+    filename = file.filename.lower()
+    content_type = file.content_type.lower() if file.content_type else ''
+    
+    # Validate file extension
+    if not any(filename.endswith(ext) for ext in VALID_EXTENSIONS):
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": f"Unsupported image format. Supported formats: {', '.join(ext[1:] for ext in VALID_EXTENSIONS)}",
+                    "code": "INVALID_FILE_EXTENSION"
+                }
+            }
+        )
+    
+    # Validate content type
+    if content_type and content_type not in VALID_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": f"Unsupported file type. Supported types: {', '.join(VALID_CONTENT_TYPES)}",
+                    "code": "UNSUPPORTED_CONTENT_TYPE"
+                }
+            }
+        )
+    
     # Read file contents
-    file_contents = file.file.read()
-    file.file.seek(0)  # Reset file pointer
+    try:
+        file_contents = await file.read()
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": f"Error reading file: {str(e)}",
+                    "code": "FILE_READ_ERROR"
+                }
+            }
+        )
     
-    # Check file type
-    file_type = imghdr.what(io.BytesIO(file_contents))
-    if file_type not in ['jpeg', 'png', 'jpg']:
-        raise HTTPException(status_code=400, detail="Unsupported image format")
+    # Verify image type using imghdr
+    try:
+        file_type = imghdr.what(io.BytesIO(file_contents))
+        if not file_type or file_type not in VALID_IMGHDR_TYPES:
+            raise ValueError("Unsupported image type")
+    except Exception:
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": "Unsupported image format. Only PNG and JPEG are supported.",
+                    "code": "INVALID_IMAGE_TYPE"
+                }
+            }
+        )
     
-    # Check file size (optional)
+    # Check file size
     file_size = len(file_contents)
-    if file_size > 5 * 1024 * 1024:  # 5MB limit
-        raise HTTPException(status_code=400, detail="File too large")
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "error": {
+                    "message": f"File too large. Maximum file size is {MAX_FILE_SIZE/1024/1024:.1f}MB.",
+                    "code": "FILE_TOO_LARGE"
+                }
+            }
+        )
     
     return file_contents
 

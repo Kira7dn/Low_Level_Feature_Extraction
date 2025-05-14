@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from ..services.image_processor import ImageProcessor
 from ..utils.error_handler import validate_image
+from ..services.shape_analyzer import ShapeAnalyzer
 
 router = APIRouter(prefix='/shapes', tags=['Shapes'])
 
@@ -27,16 +28,14 @@ async def detect_shapes(
         # Process the image
         cv_image = ImageProcessor.load_cv2_image(validated_file)
         
-        # Detect shapes (placeholder for actual shape detection)
+        # Detect shapes using ShapeAnalyzer
         try:
-            shape_analysis = {
-                'detected_shapes': ['rectangle', 'circle'],
-                'shape_count': 2
-            }
+            shape_analysis = ShapeAnalyzer.analyze_shapes(cv_image)
+            return shape_analysis
         except Exception as e:
             raise HTTPException(
                 status_code=500, 
-                detail=f"Error analyzing shapes: {str(e)}"
+                detail={"error": {"message": f"Error analyzing shapes: {str(e)}", "code": "SHAPE_ANALYSIS_ERROR"}}
             )
         
         return shape_analysis

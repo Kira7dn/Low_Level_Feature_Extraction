@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from typing import Dict, List, Any
+from typing import Dict, Any, List
 from scipy.spatial import distance
 
 class ShapeAnalyzer:
@@ -61,6 +61,68 @@ class ShapeAnalyzer:
         
         return 0.0
 
+    def extract_shapes(self, image) -> List[Dict[str, Any]]:
+        """Extract shapes from an image
+        
+        Args:
+            image: Input image
+        
+        Returns:
+            List of shape dictionaries
+        """
+        # Preprocess the image
+        preprocessed = self.preprocess_image(image)
+        
+        # Find contours
+        contours, _ = cv2.findContours(preprocessed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Analyze shapes
+        shape_results = []
+        for contour in contours:
+            # Filter out very small contours
+            if cv2.contourArea(contour) < 100:  # Minimum area threshold
+                continue
+            
+            # Get bounding rectangle
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Detect border radius
+            border_radius = self.detect_border_radius(contour)
+            
+            # Estimate shape type
+            epsilon = 0.04 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            
+            shape_type = "unknown"
+            if len(approx) == 3:
+                shape_type = "triangle"
+            elif len(approx) == 4:
+                # Check if it's a rectangle or square
+                aspect_ratio = w / float(h)
+                shape_type = "rectangle"
+            elif len(approx) > 4:
+                # Check if it's close to a circle
+                area = cv2.contourArea(contour)
+                perimeter = cv2.arcLength(contour, True)
+                if perimeter > 0:
+                    circularity = 4 * np.pi * area / (perimeter ** 2)
+                    shape_type = "circle" if circularity > 0.8 else "polygon"
+            
+            # Convert contour to list of coordinates
+            coordinates = []
+            for point in contour:
+                coordinates.append({
+                    "x": point[0][0],
+                    "y": point[0][1]
+                })
+            
+            shape_results.append({
+                "type": shape_type,
+                "coordinates": coordinates
+            })
+        
+        return shape_results
+
     @staticmethod
     def analyze_shapes(image) -> Dict[str, Any]:
         """
@@ -101,7 +163,7 @@ class ShapeAnalyzer:
             elif len(approx) == 4:
                 # Check if it's a rectangle or square
                 aspect_ratio = w / float(h)
-                shape_type = "square" if 0.95 <= aspect_ratio <= 1.05 else "rectangle"
+                shape_type = "rectangle"
             elif len(approx) > 4:
                 # Check if it's close to a circle
                 area = cv2.contourArea(contour)

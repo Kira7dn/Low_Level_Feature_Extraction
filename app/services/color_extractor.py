@@ -11,7 +11,7 @@ class ColorExtractor:
         return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
     
     @staticmethod
-    def extract_colors(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> List[str]:
+    def extract_colors(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[str, List[str]]]:
         """
         Extract dominant colors using K-means clustering
         
@@ -20,7 +20,7 @@ class ColorExtractor:
             n_colors: Number of colors to extract (default: 5)
         
         Returns:
-            List of hex color codes
+            Dictionary with primary, background, and accent colors
         """
         # Convert PIL Image to numpy array if needed
         if isinstance(image, Image.Image):
@@ -65,7 +65,12 @@ class ColorExtractor:
         # Convert to hex
         hex_colors = [ColorExtractor.rgb_to_hex(color) for color in sorted_centers]
         
-        return hex_colors
+        # Return dictionary with primary, background, and accent colors
+        return {
+            "primary": hex_colors[0] if hex_colors else "#000000",
+            "background": hex_colors[-1] if hex_colors else "#000000",
+            "accent": hex_colors[1:-1] if len(hex_colors) > 2 else []
+        }
     
     @staticmethod
     def analyze_palette(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[Dict[str, Union[str, List[int]]], List[Dict[str, Union[str, List[int]]]]]]:
