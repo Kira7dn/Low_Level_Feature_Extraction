@@ -1,10 +1,10 @@
-version: '3.9'
-
 services:
   app:
     build: 
       context: .
       dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
     container_name: image-processing-app
     ports:
       - "8000:8000"
@@ -13,45 +13,9 @@ services:
       - ./logs:/app/logs
     environment:
       - APP_ENV=development
-      - DEBUG=true
-      - LOG_LEVEL=DEBUG
-      - PERFORMANCE_LOG_RETENTION=2000
-      - MAX_WORKERS=4
     deploy:
       resources:
         limits:
           cpus: '2'
           memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  monitoring:
-    image: grafana/grafana:latest
-    container_name: performance-monitoring
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./performance_metrics:/var/lib/grafana/performance_metrics
-    depends_on:
-      - app
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    restart: unless-stopped
-
-networks:
-  default:
-    driver: bridge
-    name: image-processing-network
-
-volumes:
-  performance_metrics:
-  logs:

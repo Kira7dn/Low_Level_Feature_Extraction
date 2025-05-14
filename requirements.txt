@@ -1,6 +1,18 @@
 fastapi==0.95.1
 uvicorn==0.22.0
 opencv-python-headless==4.7.0.72
+opencv-python-dotenv==0.21.0
+jsonschema==4.17.3
+
+# Testing and CI/CD Dependencies
+pytest==7.3.1
+locust==2.15.1
+flake8==6.0.0
+black==23.3.0
+isort==5.12.0
+coverage==7.2.5
+requests==2.30.0
+# Configuration Management Dependencies
 pillow>=10.1
 scikit-image==0.25.0
 python-multipart==0.0.6

@@ -29,7 +29,33 @@ node_modules/
 # tasks/ 
 
 # Virtual environment
+# Python virtual environments
 venv
+.env
+.venv
 
-.roo
+# Compiled files
+__pycache__/
+*.py[cod]
+*.so
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
 .cursor

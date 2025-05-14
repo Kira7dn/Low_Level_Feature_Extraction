@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "low-level-feature-extraction"
+version = "0.1.0"
+description = "AI-powered low-level feature extraction application"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+opencv-python = "^4.7.0"
+numpy = "^1.24.3"
+scikit-learn = "^1.2.2"
+torch = "^2.0.1"
+torchvision = "^0.15.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.3.1"
+black = "^23.3.0"
+mypy = "^1.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,56 @@
+# Version Control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs and Databases
+*.log
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Project specific
+performance_metrics/
+logs/
+*.md
+uploads/
+sample_images/
+test_images
+
+# Node
+node_modules
+tasks
+scripts
+*test*/
+
+# GitHub
+.github
+
+# Tests
+tests
+
+# Examples
+examples
+sample_images
+logs
+uploads
+```
