@@ -1,10 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
-from app.routers import colors, text, shapes, base, shadows, fonts
-
+from app.routers import colors, text, shapes, shadows, fonts
+from app.utils.error_handler import validate_image
 
 app = FastAPI(
     title="Low-Level Feature Extraction API",
@@ -12,22 +9,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Register exception handlers
-app.add_exception_handler(Exception, global_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc)}
+    )
 
-# Optional: Register specific custom exception handlers
-app.add_exception_handler(ValidationException, global_exception_handler)
-app.add_exception_handler(AuthenticationException, global_exception_handler)
-app.add_exception_handler(ResourceNotFoundException, global_exception_handler)
-app.add_exception_handler(StorageException, global_exception_handler)
-app.add_exception_handler(BusinessLogicException, global_exception_handler)
-
-# Include routers
-app.include_router(base.router)
+# Register routers
 app.include_router(colors.router, tags=["colors"])
-app.include_router(base.router, tags=["base"])
+app.include_router(text.router, tags=["text"])
+app.include_router(shapes.router, tags=["shapes"])
 app.include_router(shadows.router, tags=["shadows"])
 app.include_router(fonts.router, tags=["fonts"])
 

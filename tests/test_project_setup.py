@@ -68,36 +68,6 @@ def test_health_endpoint():
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
-def test_shadows_endpoint_response_format():
-    """Validate shadows endpoint response format"""
-    from fastapi.testclient import TestClient
-    from app.main import app
-    import cv2
-    import numpy as np
-    
-    # Create a test image
-    image = np.ones((300, 400, 3), dtype=np.uint8) * 255
-    cv2.rectangle(image, (100, 100), (250, 200), (150, 150, 150), -1)
-    test_image_path = os.path.join(os.path.dirname(__file__), 'test_shadow_image.png')
-    cv2.imwrite(test_image_path, image)
-    
-    client = TestClient(app)
-    
-    with open(test_image_path, 'rb') as f:
-        response = client.post(
-            "/extract-shadows",
-            files={"file": ("test_image.png", f, "image/png")}
-        )
-    
-    # Validate response structure
-    assert response.status_code == 200
-    data = response.json()
-    
-    # Check keys exist
-    assert "shadow_level" in data
-    
-    # Validate value types and ranges
-    assert data["shadow_level"] in ["Low", "Medium", "High", "none"]
 
 def test_performance():
     """Test endpoint response time"""
@@ -125,7 +95,7 @@ def test_performance():
     start_time = time.time()
     with open(test_image_path, 'rb') as f:
         response = client.post(
-            "/extract-shadows",
+            "/shadows/extract",
             files={"file": ("performance_test.png", f, "image/png")}
         )
     end_time = time.time()

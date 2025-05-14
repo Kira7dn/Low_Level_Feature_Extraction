@@ -1,6 +1,9 @@
 import logging
 import traceback
 from typing import Dict, Any
+from fastapi import HTTPException
+import imghdr
+import io
 
 class ValidationException(Exception):
     """Custom exception for validation errors"""
@@ -59,6 +62,24 @@ def log_error(exception: Exception, context: Dict[str, Any] = None):
         error_details["context"] = context
     
     logger.error(f"Error occurred: {error_details}")
+
+def validate_image(file):
+    """Simple image validation for personal use"""
+    # Read file contents
+    file_contents = file.file.read()
+    file.file.seek(0)  # Reset file pointer
+    
+    # Check file type
+    file_type = imghdr.what(io.BytesIO(file_contents))
+    if file_type not in ['jpeg', 'png', 'jpg']:
+        raise HTTPException(status_code=400, detail="Unsupported image format")
+    
+    # Check file size (optional)
+    file_size = len(file_contents)
+    if file_size > 5 * 1024 * 1024:  # 5MB limit
+        raise HTTPException(status_code=400, detail="File too large")
+    
+    return file_contents
 
 def upload_error_handler(exception: Exception):
     """
