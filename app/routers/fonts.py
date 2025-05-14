@@ -5,7 +5,8 @@ import numpy as np
 import io
 
 from ..services.font_detector import FontDetector
-from ..services.image_processor import ImageProcessor
+from app.services.image_processor import ImageProcessor
+from app.utils.cache import cache_result
 from ..utils.error_handler import validate_image
 
 router = APIRouter(prefix="/fonts", tags=["Fonts"])
@@ -17,7 +18,8 @@ router = APIRouter(prefix="/fonts", tags=["Fonts"])
     summary="Extract font properties from an image",
     description="Detect font family, size, and weight from an uploaded design image"
 )
-async def extract_fonts(file: UploadFile = File(...)):
+@cache_result()
+async def detect_fonts(file: UploadFile = File(...)):
     """
     Endpoint to extract font properties from an uploaded image.
     

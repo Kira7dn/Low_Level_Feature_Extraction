@@ -1,0 +1,11 @@
+{
+    "DEBUG": true,
+    "LOG_LEVEL": "DEBUG",
+    "MAX_WORKERS": 4,
+    "CACHE_TTL": 600,
+    "IMAGE_MAX_SIZE": 20971520,
+    "PERFORMANCE_LOG_RETENTION": 2000,
+    "ALLOWED_IMAGE_FORMATS": ["png", "jpg", "webp", "avif"],
+    "CDN_PROVIDER": "cloudflare",
+    "MONITORING_ENABLED": true
+}

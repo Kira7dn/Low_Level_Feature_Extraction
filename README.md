@@ -1,4 +1,104 @@
-# Low-Level Feature Extraction API
+# Low-Level Feature Extraction
+
+## Image Processing Pipeline
+
+### Overview
+The image processing pipeline provides advanced image optimization capabilities, supporting multiple input types and intelligent transformations.
+
+### Quick Start
+
+#### Basic Image Optimization
+```python
+from app.services.image_processor import ImageProcessor
+
+# Basic usage - auto-resize, compress, and convert to WebP
+optimized_image = ImageProcessor.auto_process_image(input_image)
+```
+
+#### Advanced Image Processing
+```python
+# Full control over image transformation
+optimized_image = ImageProcessor.auto_process_image(
+    input_image,
+    max_width=800,      # Resize to max 800px width
+    max_height=600,     # Resize to max 600px height
+    target_format='avif',  # Convert to AVIF format
+    quality=90          # High-quality compression
+)
+```
+
+### Supported Input Types
+- PIL Images
+- OpenCV Images
+- Image Bytes
+
+### CDN URL Generation
+```python
+from app.frontend_utils import ImageCdnManager
+
+# Create CDN manager
+cdn_manager = ImageCdnManager('https://cdn.example.com')
+
+# Generate optimized image URL
+cdn_url = cdn_manager.get_optimized_image_url(
+    '/path/to/image.jpg', 
+    {'resize': {'width': 800, 'height': 600}}
+)
+```
+
+### Responsive Image URLs
+```python
+# Generate multiple image URLs for different screen sizes
+responsive_urls = cdn_manager.get_responsive_image_urls('/path/to/image.jpg')
+```
+
+### Performance Characteristics
+- Supports multiple input types
+- Optimizes image size and quality
+- Consistent processing time (<2 seconds)
+- Reduces image file size while maintaining visual quality
+
+### Dependencies
+- Pillow (PIL)
+- OpenCV
+- NumPy
+
+### Installation
+```bash
+pip install -r requirements.txt
+```
+
+### Example Usage
+
+Check out the comprehensive example in `examples/image_processing_demo.py`:
+
+```python
+# Basic Image Processing
+basic_processed = ImageProcessor.auto_process_image(input_image)
+
+# Custom Image Processing
+custom_processed = ImageProcessor.auto_process_image(
+    input_image,
+    max_width=800,      # Resize to max 800px width
+    max_height=600,     # Resize to max 600px height
+    target_format='avif',  # Convert to AVIF format
+    quality=90          # High-quality compression
+)
+
+# CDN URL Generation
+cdn_manager = ImageCdnManager('https://cdn.example.com')
+cdn_url = cdn_manager.get_optimized_image_url(
+    '/path/to/image.jpg', 
+    {'resize': {'width': 800, 'height': 600}}
+)
+```
+
+To run the full demo:
+```bash
+python examples/image_processing_demo.py
+```
+
+### API
 
 ## Project Overview
 A FastAPI-based backend service for extracting key visual elements from design images.

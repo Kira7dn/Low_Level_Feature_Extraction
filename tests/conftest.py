@@ -14,8 +14,7 @@ from datetime import datetime
 # Ensure the app module can be imported
 import app
 
-# Import test report generator
-from .test_report_generator import TestReportGenerator
+# Test report generator import removed
 
 # Global variable to store test metrics
 test_metrics = {

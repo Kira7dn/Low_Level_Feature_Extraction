@@ -1,11 +1,13 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from ..services.image_processor import ImageProcessor
+from app.services.image_processor import ImageProcessor
+from app.utils.cache import cache_result
 from ..utils.error_handler import validate_image
 from ..services.shape_analyzer import ShapeAnalyzer
 
 router = APIRouter(prefix='/shapes', tags=['Shapes'])
 
 @router.post('/detect')
+@cache_result()
 async def detect_shapes(
     file: UploadFile = File(..., description='Image file to analyze for shapes')
 ):
