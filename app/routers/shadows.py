@@ -2,7 +2,6 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from ..services.image_processor import ImageProcessor
 from ..services.shadow_analyzer import ShadowAnalyzer
 from ..utils.error_handler import validate_image
-import numpy as np
 
 router = APIRouter(prefix="/shadows", tags=["Shadows"])
 
@@ -31,19 +30,19 @@ async def extract_shadows(file: UploadFile = File(...)):
     """
     try:
         # Validate and load image
-        image_bytes = validate_image(file)
-        cv_image = ImageProcessor.load_cv2_image(image_bytes)
-        
+        image_bytes = await validate_image(file)
+        try:
+            cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Error processing image: {str(e)}"
+            )
         # Analyze shadow level
         try:
-            # Implement shadow level detection based on image intensity
-            mean_intensity = np.mean(cv_image)
-            if mean_intensity < 50:
-                shadow_analysis = "High"
-            elif mean_intensity < 200:
-                shadow_analysis = "Moderate"
-            else:
-                shadow_analysis = "Low"
+            # Use ShadowAnalyzer to detect shadow intensity
+            shadow_analysis = ShadowAnalyzer.analyze_shadow_level(cv_image)
+            print(f"Shadow analysis result: {shadow_analysis}")
         except Exception as e:
             raise HTTPException(
                 status_code=500, 

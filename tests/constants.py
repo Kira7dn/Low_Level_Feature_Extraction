@@ -20,7 +20,7 @@ class ValidationRules:
     
     # Text Extraction Validation
     TEXT_EXTRACTION = {
-        "expected_keys": ["text"],
+        "expected_keys": ["lines"],
         "min_text_length": 1,
         "max_text_entries": 50
     }

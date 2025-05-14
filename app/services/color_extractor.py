@@ -73,7 +73,7 @@ class ColorExtractor:
         }
     
     @staticmethod
-    def analyze_palette(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[Dict[str, Union[str, List[int]]], List[Dict[str, Union[str, List[int]]]]]]:
+    def analyze_palette(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[List[Dict[str, Union[str, List[int]]]], Dict[str, Union[str, List[int]]]]]:
         """
         Analyze color palette with detailed information
         
@@ -88,7 +88,7 @@ class ColorExtractor:
         
         # Convert hex back to RGB for detailed response
         palette = []
-        for hex_color in hex_colors:
+        for hex_color in [hex_colors['primary'], hex_colors['background']] + hex_colors['accent']:
             # Convert hex to RGB
             rgb = tuple(int(hex_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
             
@@ -98,6 +98,7 @@ class ColorExtractor:
         
         return {
             'colors': palette,
-            'primary_color': palette[0] if palette else None,
-            'background_color': palette[-1] if palette else None
+            'primary': palette[0]['hex'] if palette else '#000000',
+            'background': palette[1]['hex'] if len(palette) > 1 else '#000000',
+            'accent': [color['hex'] for color in palette[2:]] if len(palette) > 2 else []
         }

@@ -57,8 +57,9 @@ def test_extract_shadows_invalid_format():
     
     assert response.status_code == 400
     data = response.json()
-    assert "error" in data
-    assert "Unsupported image format" in str(data["error"])
+    assert "detail" in data
+    assert "error" in data["detail"]
+    assert "Unsupported image format" in str(data["detail"]["error"]["message"])
 
 def test_extract_shadows_no_file():
     """Test shadows extraction with no file"""
@@ -66,4 +67,6 @@ def test_extract_shadows_no_file():
     
     assert response.status_code in [400, 422]  # Either validation error or missing file error
     data = response.json()
-    assert "error" in data
+    assert "detail" in data
+    assert isinstance(data['detail'], list)
+    assert any('file' in str(error.get('loc', '')) for error in data['detail'])

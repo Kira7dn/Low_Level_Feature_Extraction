@@ -139,7 +139,7 @@ async def validate_image(file):
             detail={
                 "error": {
                     "message": f"Unsupported image format. Supported formats: {', '.join(ext[1:] for ext in VALID_EXTENSIONS)}",
-                    "code": "INVALID_FILE_EXTENSION"
+                    "code": "INVALID_IMAGE_TYPE"
                 }
             }
         )
@@ -151,7 +151,7 @@ async def validate_image(file):
             detail={
                 "error": {
                     "message": f"Unsupported file type. Supported types: {', '.join(VALID_CONTENT_TYPES)}",
-                    "code": "UNSUPPORTED_CONTENT_TYPE"
+                    "code": "INVALID_CONTENT_TYPE"
                 }
             }
         )

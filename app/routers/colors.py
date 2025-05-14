@@ -9,6 +9,7 @@ import numpy as np
 
 from app.services.color_extractor import ColorExtractor
 from app.utils.image_validator import validate_image
+from app.utils.error_handler import ValidationException
 
 router = APIRouter(prefix="/colors", tags=["Colors"])
 
@@ -16,27 +17,22 @@ class ColorExtractionResponse(BaseModel):
     """Response model for color extraction
     
     Provides a comprehensive breakdown of colors extracted from an image.
-    Each color includes RGB, HEX, and a human-readable name.
     
     Attributes:
-        colors (List[Dict]): List of extracted colors with details
-        primary_color (Dict): The most dominant color in the image
-        background_color (Dict): The color representing the background
+        primary (str): The most dominant color in HEX format
+        background (str): The background color in HEX format
+        accent (List[str]): List of accent colors in HEX format
     
     Example:
         {
-            "colors": [
-                {"rgb": [255, 0, 0], "hex": "#FF0000", "name": "red"},
-                {"rgb": [0, 0, 255], "hex": "#0000FF", "name": "blue"},
-                ...
-            ],
-            "primary_color": {"rgb": [255, 0, 0], "hex": "#FF0000", "name": "red"},
-            "background_color": {"rgb": [0, 0, 255], "hex": "#0000FF", "name": "blue"}
+            "primary": "#FF0000",
+            "background": "#0000FF",
+            "accent": ["#00FF00", "#FFFF00"]
         }
     """
-    colors: List[Dict[str, Union[str, List[int]]]]
-    primary_color: Dict[str, Union[str, List[int]]]
-    background_color: Dict[str, Union[str, List[int]]]
+    primary: str
+    background: str
+    accent: List[str]
 
 @router.post("/extract", response_model=ColorExtractionResponse, 
     summary="Extract Color Palette from Image",
@@ -73,7 +69,7 @@ async def extract_colors(
     # Validate the image
     try:
         validated_file = await validate_image(file)
-    except Exception as e:
+    except ValidationException as e:
         raise HTTPException(status_code=400, detail=str(e))
     
     # Open image with Pillow
@@ -91,7 +87,11 @@ async def extract_colors(
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error analyzing color palette")
     
-    return color_analysis
+    return {
+        'primary': color_analysis['primary'],
+        'background': color_analysis['background'],
+        'accent': color_analysis['accent']
+    }
 
 class Base64ImageRequest(BaseModel):
     base64_image: str

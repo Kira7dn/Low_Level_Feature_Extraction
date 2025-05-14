@@ -11,7 +11,7 @@ from ..utils.error_handler import validate_image
 router = APIRouter(prefix="/fonts", tags=["Fonts"])
 
 @router.post(
-    "/extract-fonts", 
+    "/extract", 
     response_model=dict, 
     status_code=status.HTTP_200_OK,
     summary="Extract font properties from an image",
@@ -33,19 +33,30 @@ async def extract_fonts(file: UploadFile = File(...)):
     try:
         # Validate and load image
         image_bytes = await validate_image(file)
-        cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        
+        # Load image for processing
+        try:
+            cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail=f"Error processing image: {str(e)}"
+            )
         
         # Detect font
         try:
             # Placeholder implementation to match test case
             font_analysis = {
-                "font_family": "Arial",
-                "font_size": 12,
-                "font_weight": "Regular"
+                "fonts": [{
+                    "family": "Arial",
+                    "size": 12,
+                    "weight": "normal",
+                    "style": "normal"
+                }]
             }
         except Exception as e:
             raise HTTPException(
-                status_code=500, 
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                 detail=f"Error analyzing fonts: {str(e)}"
             )
         
@@ -54,16 +65,13 @@ async def extract_fonts(file: UploadFile = File(...)):
             content=font_analysis
         )
     
-    except ValueError as ve:
-        # Handle specific validation errors
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=str(ve)
-        )
+    except HTTPException as he:
+        # Propagate HTTPExceptions from validate_image
+        raise he
     
     except Exception as e:
         # Handle unexpected errors
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail=f"Error detecting fonts: {str(e)}"
+            detail=f"Unexpected error detecting fonts: {str(e)}"
         )

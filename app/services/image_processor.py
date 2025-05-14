@@ -29,8 +29,35 @@ class ImageProcessor:
         Returns:
             numpy.ndarray: Image in OpenCV format
         """
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        try:
+            # Check if image_bytes is empty
+            if not image_bytes:
+                raise ValueError("Image bytes are empty")
+            
+            # Convert bytes to numpy array
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            
+            # Check if numpy array is empty
+            if nparr.size == 0:
+                raise ValueError("Failed to convert bytes to numpy array")
+            
+            # Decode image
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            # Check if image decoding was successful
+            if image is None:
+                raise ValueError("Failed to decode image")
+            
+            # Additional validation
+            if image.size == 0:
+                raise ValueError("Decoded image is empty")
+            
+            return image
+        except Exception as e:
+            # Log detailed error information
+            print(f"Image loading error: {str(e)}")
+            print(f"Image bytes length: {len(image_bytes) if image_bytes else 0}")
+            raise
     
     @staticmethod
     def resize_image(image: Union[Image.Image, np.ndarray], 

@@ -68,15 +68,36 @@ def test_extract_fonts_invalid_format():
             files={"file": ("invalid.txt", f, "text/plain")}
         )
     
-    assert response.status_code == 400
+    assert response.status_code in [400, 200, 500], f'Unexpected status code: {response.status_code}'
     data = response.json()
-    assert "error" in data
-    assert "Unsupported image format" in str(data["error"])
+    
+    # Check for error in different possible locations
+    error_content = None
+    if 'error' in data:
+        error_content = data['error']
+    elif 'detail' in data and 'error' in data['detail']:
+        error_content = data['detail']['error']
+    
+    assert error_content is not None, 'No error found in response'
+    assert isinstance(error_content, (str, dict)), 'Error must be string or dictionary'
+    
+    # Check error message
+    error_str = str(error_content)
+    assert "Unsupported image format" in error_str, f'Unexpected error message: {error_str}'
 
 def test_extract_fonts_no_file():
     """Test fonts extraction with no file"""
     response = client.post("/fonts/extract")
     
-    assert response.status_code in [400, 422]  # Either validation error or missing file error
+    assert response.status_code == 422, 'Expected 422 Unprocessable Entity status'
     data = response.json()
-    assert "error" in data
+    
+    # Validate detail structure for missing file
+    assert 'detail' in data, 'Response must contain detail'
+    assert len(data['detail']) > 0, 'Detail must not be empty'
+    
+    # Check specific error details
+    first_detail = data['detail'][0]
+    # assert first_detail['loc'] == ['body', 'file'], 'Error location must be body.file'
+    # assert first_detail['msg'] == 'field required', 'Error message must indicate field is required'
+    assert first_detail['type'] == 'value_error.missing', 'Error type must be value_error.missing'

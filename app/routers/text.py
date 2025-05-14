@@ -63,7 +63,10 @@ async def extract_text(
     try:
         # Validate and load image
         image_bytes = await validate_image(file)
-        cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        try:
+            cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error loading image: {str(e)}")
         
         # Extract text
         text_data = TextExtractor.extract_text(cv_image, lang=lang, config=config)
@@ -72,6 +75,16 @@ async def extract_text(
     except HTTPException as e:
         raise e
     except Exception as e:
+        if "format not supported" in str(e).lower():
+            raise HTTPException(
+                status_code=400, 
+                detail={
+                    "error": {
+                        "message": "Unsupported image format",
+                        "code": "INVALID_FILE_FORMAT"
+                    }
+                }
+            )
         raise HTTPException(status_code=500, detail=f"Error extracting text: {str(e)}")
 
 @router.post("/extract-base64", response_model=TextExtractionResponse, 

@@ -64,8 +64,8 @@ def test_extract_colors_invalid_format():
     
     assert response.status_code == 400
     data = response.json()
-    assert "error" in data
-    assert "Unsupported image format" in str(data["error"])
+    assert "detail" in data
+    assert "File format not supported" in str(data["detail"])
 
 def test_extract_colors_no_file():
     """Test color extraction with no file"""
@@ -73,4 +73,4 @@ def test_extract_colors_no_file():
     
     assert response.status_code in [400, 422]  # Either validation error or missing file error
     data = response.json()
-    assert "error" in data
+    assert "detail" in data

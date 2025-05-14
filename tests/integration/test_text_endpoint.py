@@ -44,12 +44,12 @@ def test_extract_text_success():
         result, 
         ValidationRules.TEXT_EXTRACTION["expected_keys"],
         [
-            lambda r: isinstance(r["text"], list),
-            lambda r: 0 < len(r["text"]) <= ValidationRules.TEXT_EXTRACTION["max_text_entries"],
-            lambda r: all(len(text) >= ValidationRules.TEXT_EXTRACTION["min_text_length"] for text in r["text"])
+            lambda r: isinstance(r["lines"], list),
+            lambda r: 0 < len(r["lines"]) <= ValidationRules.TEXT_EXTRACTION["max_text_entries"],
+            lambda r: all(len(text) >= ValidationRules.TEXT_EXTRACTION["min_text_length"] for text in r["lines"])
         ]
     ), "Invalid response structure"
-    assert all(isinstance(text, str) and len(text.strip()) > 0 for text in result["text"]), \
+    assert all(isinstance(text, str) and len(text.strip()) > 0 for text in result["lines"]), \
         "All text entries must be non-empty strings"
 
 def test_extract_text_invalid_format():
@@ -64,13 +64,14 @@ def test_extract_text_invalid_format():
     
     assert response.status_code == 400
     data = response.json()
-    assert "error" in data
-    assert "Unsupported image format" in str(data["error"])
+    assert "error" in data["detail"]
+    assert "Unsupported image format" in str(data["detail"]["error"]["message"])
 
 def test_extract_text_no_file():
     """Test text extraction with no file"""
     response = client.post("/text/extract")
     
-    assert response.status_code in [400, 422]  # Either validation error or missing file error
+    assert response.status_code == 422  # Validation error for missing file
     data = response.json()
-    assert "error" in data
+    assert isinstance(data['detail'], list)
+    assert any(error.get('loc') == ['body', 'file'] for error in data['detail'])
