@@ -1,36 +1,32 @@
-# Simplified Dockerfile for faster builds
-FROM python:3.10-slim-bullseye
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim-buster
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libopencv-dev \
-    python3-opencv \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Poetry
-RUN pip install --no-cache-dir poetry==1.5.1
-
-# Set working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy only necessary files
-COPY pyproject.toml poetry.lock* ./
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    tesseract-ocr \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --only main
+# Copy the current directory contents into the container at /app
+COPY . /app
 
-# Copy the rest of the application
-COPY . .
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
+# Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Command to run the application
-CMD ["python", "-m", "src.main"]
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV TESSERACT_PATH=/usr/bin/tesseract
+ENV OPENCV_IO_MAX_IMAGE_PIXELS=18446744073709551615
+
+# Run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

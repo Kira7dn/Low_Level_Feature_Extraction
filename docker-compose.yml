@@ -1,21 +1,100 @@
+version: '3.8'
+
 services:
-  app:
+  # 1. Feature Extraction API
+  feature_extraction:
     build: 
       context: .
       dockerfile: Dockerfile
-      platforms:
-        - linux/amd64
-    container_name: image-processing-app
+    container_name: low_level_feature_extraction
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./images:/app/images
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TESSERACT_PATH=/usr/bin/tesseract
+      - OPENCV_IO_MAX_IMAGE_PIXELS=18446744073709551615
+      - MAX_FILE_SIZE=5242880  # 5MB limit
     ports:
       - "8000:8000"
+    networks:
+      - feature_network
+    depends_on:
+      - redis
+      - minio
+
+  # 2. Redis for Caching and Rate Limiting
+  redis:
+    image: redis:6.2-alpine
+    container_name: feature_extraction_redis
+    ports:
+      - "6379:6379"
     volumes:
-      - ./performance_metrics:/app/performance_metrics
-      - ./logs:/app/logs
+      - redis_data:/data
+    networks:
+      - feature_network
+
+  # 3. MinIO for Object Storage
+  minio:
+    image: minio/minio
+    container_name: feature_extraction_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      - APP_ENV=development
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-    restart: unless-stopped
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_storage:/data
+    command: server --console-address ":9001" /data
+    networks:
+      - feature_network
+
+  # 4. Monitoring Services
+  prometheus:
+    image: prom/prometheus
+    container_name: feature_extraction_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - feature_network
+
+  grafana:
+    image: grafana/grafana
+    container_name: feature_extraction_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - feature_network
+    depends_on:
+      - prometheus
+
+  # 5. Development Tools
+  notebook:
+    image: jupyter/scipy-notebook
+    container_name: feature_extraction_notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/home/jovyan/work
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    networks:
+      - feature_network
+
+networks:
+  feature_network:
+    driver: bridge
+
+volumes:
+  data:
+  models:
+  redis_data:
+  minio_storage:
+  grafana_data:

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
-from app.routers import colors, text, shapes, shadows, fonts
+from app.routers import colors, text, shapes, shadows, fonts, metrics, unified_analysis
 from app.utils.error_handler import validate_image
 
 def create_app():
@@ -24,6 +24,8 @@ def create_app():
     app.include_router(shapes.router, tags=["shapes"])
     app.include_router(shadows.router, tags=["shadows"])
     app.include_router(fonts.router, tags=["fonts"])
+    app.include_router(metrics.router, tags=["metrics"])
+    app.include_router(unified_analysis.router, tags=["unified_analysis"])
 
     @app.get("/")
     async def root():

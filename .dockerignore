@@ -12,6 +12,7 @@ env/
 venv/
 .venv/
 .env
+.pytest_cache/
 
 # IDE
 .vscode/
@@ -54,3 +55,4 @@ sample_images
 logs
 uploads
 ```
+.roo/
