@@ -1,43 +1,15 @@
 services:
-  # Main FastAPI Application
   - type: web
     name: feature-extraction-api
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: feature-cache
-          property: connectionString
-      - key: MINIO_ROOT_USER
-        sync: false
-      - key: MINIO_ROOT_PASSWORD
-        sync: false
       - key: MAX_CONTENT_LENGTH
         value: 16777216  # 16MB
       - key: TESSERACT_PATH
         value: /usr/bin/tesseract
     healthCheckPath: /health
-    autoDeploy: true
-
-  # Redis Service
-  - type: redis
-    name: feature-cache
-    ipAllowList: []  # Only allow internal connections
-    plan: free  # Render's free tier Redis
-
-  # MinIO Service (using S3-compatible object storage)
-  - type: web
-    name: feature-storage
-    env: docker
-    dockerfilePath: ./Dockerfile.minio
-    envVars:
-      - key: MINIO_ROOT_USER
-        sync: false
-      - key: MINIO_ROOT_PASSWORD
-        sync: false
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
+    plan: free  # Specify free tier
+    scaling:
+      minInstances: 1  # Minimum required instances
+      maxInstances: 1  # Maximum one instance on free tier

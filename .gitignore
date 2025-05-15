@@ -1,57 +1,52 @@
-# Logs
-logs
-*.log
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.env
+.venv/
+
+# Node
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dev-debug.log
 
-# Dependency directories
-node_modules/
+# Project specific
+performance_metrics/
+logs/
+uploads/
+sample_images/
+test_images/
+test_results/
+tasks/
+scripts/
 
-# Environment variables
-.env
+# Tests and examples
+tests/
+examples/
+*test*/
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS specific
-.DS_Store
-
-# Task files
-# tasks.json
-# tasks/ 
-
-# Virtual environment
-# Python virtual environments
-venv
-.env
-.venv
-
-# Compiled files
-__pycache__/
-*.py[cod]
-*.so
-
-# Testing and coverage
-.pytest_cache/
-.coverage
-htmlcov/
+# Documentation
+*.md
 
 # Build and distribution
 build/
 dist/
 *.egg-info/
 
-# IDE and editor files
+# IDE and editor
 .idea/
 .vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *.swp
 *.swo
 
@@ -59,11 +54,3 @@ dist/
 .DS_Store
 Thumbs.db
 .cursor
-
-
-sample_images/
-test_images/
-test_results/
-scripts/
-tasks/
-uploads/

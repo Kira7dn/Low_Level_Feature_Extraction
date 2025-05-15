@@ -22,37 +22,51 @@ venv/
 *.log
 *.sqlite3
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.env
+.venv/
 
-# Docker
-.dockerignore
+# Node
+node_modules/
 
 # Project specific
 performance_metrics/
 logs/
-*.md
 uploads/
 sample_images/
-test_images
+test_images/
+tasks/
+scripts/
 
-# Node
-node_modules
-tasks
-scripts
+# Tests and examples
+tests/
+examples/
 *test*/
 
-# GitHub
-.github
+# Documentation
+*.md
 
-# Tests
-tests
+# Docker
+.dockerignore
 
-# Examples
-examples
-sample_images
-logs
-uploads
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+.cursor
+logs/
+uploads/
 ```
 .roo/
