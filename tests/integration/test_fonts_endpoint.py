@@ -14,11 +14,11 @@ client = TestClient(app)
 
 def test_extract_fonts_success():
     """Validate successful fonts extraction"""
-    test_image_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'fonts_sample.png')
+    test_image_path = os.path.join(os.path.dirname(__file__),'..', 'test_images', 'fonts_sample.png')
     
     with open(test_image_path, "rb") as f:
         response = client.post(
-            "/fonts/extract",
+            "/api/v1/fonts/extract",
             files={"file": (f.name, f, "image/png")}
         )
     
@@ -36,11 +36,13 @@ def test_extract_fonts_success():
     
     # Response structure validation
     result = response.json()
-    assert validate_response_structure(
+    is_valid, error_msg = validate_response_structure(
         result, 
         ValidationRules.FONTS_EXTRACTION["expected_keys"],
-        [
-            lambda r: isinstance(r["fonts"], list),
+        value_types={
+            "fonts": list
+        },
+        additional_checks=[
             lambda r: 0 < len(r["fonts"]) <= ValidationRules.FONTS_EXTRACTION["max_fonts"],
             lambda r: all(
                 "family" in font and 
@@ -55,16 +57,17 @@ def test_extract_fonts_success():
                 for font in r["fonts"]
             )
         ]
-    ), "Invalid response structure"
+    )
+    assert is_valid, f"Invalid response structure: {error_msg}"
         # Assertions removed to prevent redundancy
 
 def test_extract_fonts_invalid_format():
     """Test fonts extraction with an invalid file format"""
-    test_text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'invalid.txt')
+    test_text_path = os.path.join(os.path.dirname(__file__), '..', 'test_images', 'invalid.txt')
     
     with open(test_text_path, "rb") as f:
         response = client.post(
-            "/fonts/extract",
+            "/api/v1/fonts/extract",
             files={"file": ("invalid.txt", f, "text/plain")}
         )
     
@@ -87,7 +90,7 @@ def test_extract_fonts_invalid_format():
 
 def test_extract_fonts_no_file():
     """Test fonts extraction with no file"""
-    response = client.post("/fonts/extract")
+    response = client.post("/api/v1/fonts/extract")
     
     assert response.status_code == 422, 'Expected 422 Unprocessable Entity status'
     data = response.json()

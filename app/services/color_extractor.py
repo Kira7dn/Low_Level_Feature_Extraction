@@ -24,13 +24,27 @@ class ColorExtractor:
         """
         # Convert PIL Image to numpy array if needed
         if isinstance(image, Image.Image):
+            # Convert to RGB mode if needed
+            if image.mode == 'RGBA':
+                # Create a white background
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                # Paste using alpha channel
+                background.paste(image, mask=image.split()[3])
+                image = background
+            elif image.mode != 'RGB':
+                image = image.convert('RGB')
+            # Convert to numpy array
             image = np.array(image)
         
-        # Ensure image is in RGB format
+        # Double check array format
         if len(image.shape) == 2:  # Grayscale
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        elif image.shape[2] == 4:  # RGBA
-            image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
+        elif len(image.shape) == 3:
+            if image.shape[2] == 4:  # RGBA
+                # Convert RGBA to RGB
+                image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
+            elif image.shape[2] != 3:  # Not RGB
+                raise ValueError(f"Unexpected number of channels: {image.shape[2]}")
         
         # Resize image to speed up processing
         img = cv2.resize(image, (150, 150), interpolation=cv2.INTER_AREA)

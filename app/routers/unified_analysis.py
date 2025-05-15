@@ -1,7 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from typing import Dict, List, Optional
 import asyncio
-from app.utils.cache import cache_result
 
 # Import existing service layers
 from ..services.image_processor import ImageProcessor
@@ -30,7 +29,6 @@ router = APIRouter()
     summary="Unified image analysis",
     response_description="Comprehensive analysis of image features"
 )
-@cache_result(ttl=600)  # Cache results for 10 minutes
 async def analyze_image(
     file: UploadFile = File(...),
     preprocessing: Optional[str] = Form("auto"),

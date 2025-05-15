@@ -4,6 +4,7 @@ import re
 import numpy as np
 from typing import Any, Dict
 from typing import List, Dict, Union
+import time
 
 class TextExtractor:
     @staticmethod
@@ -101,13 +102,18 @@ class TextExtractor:
                     }
                 })
         
+        # Calculate average confidence for extracted lines
+        avg_confidence = sum(result['confidence'] for result in text_results) / len(text_results) if text_results else 0.0
+        
         return {
             'lines': [result['text'] for result in text_results],
             'details': text_results,
             'metadata': {
                 'total_lines': len(data['text']),
                 'extracted_lines': len(text_results),
-                'confidence_threshold': confidence_threshold
+                'confidence_threshold': confidence_threshold,
+                'confidence': avg_confidence,
+                'timestamp': time.time()
             }
         }
     
@@ -124,7 +130,14 @@ class TextExtractor:
         """
         # If no text, return empty dictionary
         if not text:
-            return {"lines": [], "details": []}
+            return {
+                "lines": [], 
+                "details": [],
+                "metadata": {
+                    "confidence": 0.0,
+                    "timestamp": time.time()
+                }
+            }
 
         # Split by newlines and remove empty lines
         lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -158,5 +171,9 @@ class TextExtractor:
 
         return {
             "lines": [line["text"] for line in processed_lines],
-            "details": processed_lines
+            "details": processed_lines,
+            "metadata": {
+                "confidence": 1.0,  # Text post-processing always succeeds
+                "timestamp": time.time()
+            }
         }

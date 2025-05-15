@@ -10,7 +10,6 @@ import numpy as np
 from app.services.color_extractor import ColorExtractor
 from app.utils.image_validator import validate_image
 from app.utils.error_handler import ValidationException
-from app.utils.cache import cache_result
 
 router = APIRouter(prefix="/colors", tags=["Colors"])
 
@@ -51,7 +50,6 @@ class ColorExtractionResponse(BaseModel):
         400: {"description": "Invalid image file"},
         500: {"description": "Internal server error during color analysis"}
     })
-@cache_result(ttl=3600)  # Cache color extraction for 1 hour
 async def extract_colors(
     file: UploadFile = File(..., description="Image file to analyze. Must be PNG, JPEG, or BMP."),
     n_colors: int = Query(5, ge=1, le=10, description="Number of dominant colors to extract (1-10). Default is 5.")
@@ -77,8 +75,17 @@ async def extract_colors(
     # Open image with Pillow
     try:
         image = Image.open(io.BytesIO(validated_file))
+        # Convert RGBA to RGB if needed
+        if image.mode == 'RGBA':
+            # Create a white background image
+            background = Image.new('RGB', image.size, (255, 255, 255))
+            # Paste the image on the background using alpha channel
+            background.paste(image, mask=image.split()[3])
+            image = background
+        elif image.mode != 'RGB':
+            image = image.convert('RGB')
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Could not process the image")
+        raise HTTPException(status_code=400, detail=f"Could not process the image: {str(e)}")
     
     # Convert to numpy array
     image_array = np.array(image)
@@ -114,7 +121,6 @@ class Base64ImageRequest(BaseModel):
         400: {"description": "Invalid base64 image"},
         500: {"description": "Internal server error during color analysis"}
     })
-@cache_result(ttl=3600)  # Cache color extraction for 1 hour
 async def extract_colors_base64(
     request: Base64ImageRequest,
     n_colors: int = Query(5, ge=1, le=10, description="Number of dominant colors to extract (1-10). Default is 5.")

@@ -1,10 +1,9 @@
 import time
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import colors, text, shapes, shadows, fonts, metrics, unified_analysis
+from app.routers import colors, text, shapes, shadows, fonts, unified_analysis
 from app.utils.error_handler import validate_image
-from app.routers.metrics import REQUEST_COUNT, REQUEST_LATENCY, ERROR_COUNT
 
 def create_app():
     global app
@@ -23,28 +22,8 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # Metrics middleware
-    @app.middleware("http")
-    async def metrics_middleware(request: Request, call_next):
-        start_time = time.time()
-        path = request.url.path
-        method = request.method
-
-        try:
-            response = await call_next(request)
-            REQUEST_COUNT.labels(method=method, endpoint=path, status=response.status_code).inc()
-            REQUEST_LATENCY.labels(endpoint=path).observe(time.time() - start_time)
-            return response
-        except Exception as e:
-            ERROR_COUNT.labels(endpoint=path, error_type=type(e).__name__).inc()
-            raise
-
     @app.exception_handler(Exception)
     async def general_exception_handler(request, exc):
-        ERROR_COUNT.labels(
-            endpoint=request.url.path,
-            error_type=type(exc).__name__
-        ).inc()
         return JSONResponse(
             status_code=500,
             content={
@@ -59,21 +38,55 @@ def create_app():
     app.include_router(shapes.router, prefix="/api/v1", tags=["shapes"])
     app.include_router(shadows.router, prefix="/api/v1", tags=["shadows"])
     app.include_router(fonts.router, prefix="/api/v1", tags=["fonts"])
-    app.include_router(metrics.router, tags=["monitoring"])
     app.include_router(unified_analysis.router, prefix="/api/v1", tags=["unified_analysis"])
 
-    @app.get("/")
+    @app.get("/", response_class=HTMLResponse)
     async def root():
-        return {
-            "message": "Welcome to the Low-Level Feature Extraction API",
-            "version": "1.0.0",
-            "docs_url": "/docs",
-            "metrics_url": "/metrics"
-        }
-
-    @app.get("/health")
-    async def health_check():
-        return {"status": "healthy"}
+        html_content = """
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>Feature Extraction API</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        line-height: 1.6;
+                    }
+                    h1 { color: #2c3e50; }
+                    .links a {
+                        display: inline-block;
+                        margin: 10px;
+                        padding: 10px 20px;
+                        background: #3498db;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 5px;
+                    }
+                    .links a:hover { background: #2980b9; }
+                </style>
+            </head>
+            <body>
+                <h1>Feature Extraction API</h1>
+                <p>Welcome to the Low-Level Feature Extraction API. This service provides image analysis capabilities including:</p>
+                <ul>
+                    <li>Color Analysis</li>
+                    <li>Text Recognition</li>
+                    <li>Shape Detection</li>
+                    <li>Shadow Analysis</li>
+                    <li>Font Detection</li>
+                </ul>
+                <div class="links">
+                    <a href="/docs">API Documentation</a>
+                    <a href="/api/v1/unified-analysis">Try Unified Analysis</a>
+                </div>
+                <p><small>Version: 1.0.0</small></p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
 
     return app
 

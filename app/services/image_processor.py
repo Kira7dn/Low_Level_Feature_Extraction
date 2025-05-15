@@ -7,7 +7,6 @@ from typing import Union, Tuple, Optional
 import time
 import logging
 from app.monitoring.performance import PerformanceMonitor
-from app.config.settings import get_config, is_debug_mode
 
 # Configure logging
 logging.basicConfig(
@@ -25,7 +24,6 @@ class ImageProcessor:
     
     # Configure logging
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.getLevelName(get_config('LOG_LEVEL')))
 
     @staticmethod
     @PerformanceMonitor.track_performance()
@@ -196,67 +194,6 @@ class ImageProcessor:
         
         # Compress to WebP
         return ImageProcessor.compress_image(resized_image)
-    
-    @staticmethod
-    def generate_cdn_url(base_url: str, image_path: str, transformations: Optional[dict] = None) -> str:
-        """Generate a CDN-friendly URL with optional image transformations
-        
-        Args:
-            base_url (str): Base CDN URL
-            image_path (str): Path to the original image
-            transformations (Optional[dict]): Image transformation parameters
-        
-        Returns:
-            str: CDN URL with optional transformations
-        """
-        # Validate inputs
-        if not base_url or not image_path:
-            raise ValueError("Base URL and image path must be provided")
-        
-        # Extract filename
-        filename = os.path.basename(image_path)
-        
-        # Default transformations
-        default_transforms = {
-            'format': 'webp',  # Convert to WebP
-            'quality': 85,     # Compression quality
-            'resize': {        # Optional resize
-                'width': 1920,
-                'height': 1080,
-                'fit': 'max'   # Maintain aspect ratio
-            }
-        }
-        
-        # Merge default and provided transformations
-        if transformations:
-            default_transforms.update(transformations)
-        
-        # Construct CDN URL with transformations
-        transform_params = []
-        
-        # Format transformation
-        if default_transforms.get('format'):
-            transform_params.append(f"f:{default_transforms['format']}")
-        
-        # Quality transformation
-        if default_transforms.get('quality'):
-            transform_params.append(f"q:{default_transforms['quality']}")
-        
-        # Resize transformation
-        resize = default_transforms.get('resize', {})
-        if resize:
-            width = resize.get('width', 'auto')
-            height = resize.get('height', 'auto')
-            fit = resize.get('fit', 'max')
-            transform_params.append(f"w:{width},h:{height},fit:{fit}")
-        
-        # Combine transformations
-        transform_string = ','.join(transform_params)
-        
-        # Construct final CDN URL
-        cdn_url = f"{base_url.rstrip('/')}/{transform_string}/{filename}"
-        
-        return cdn_url
     
     @staticmethod
     def auto_process_image(image, 

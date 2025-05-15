@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ImageValidationConfig:
     """Configuration for image validation rules"""
-    ALLOWED_EXTENSIONS: Set[str] = {"png", "jpeg", "jpg", "bmp", "webp"}
+    ALLOWED_EXTENSIONS: Set[str] = {"png", "jpeg", "jpg", "webp"}
     MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5MB
     MAX_DIMENSIONS: Tuple[int, int] = (4096, 4096)  # Maximum image dimensions
     MIN_DIMENSIONS: Tuple[int, int] = (10, 10)  # Minimum image dimensions
@@ -82,7 +82,7 @@ class ImageValidator:
         
         if not file_type or normalized_type not in ImageValidationConfig.ALLOWED_EXTENSIONS:
             raise ValidationException(
-                detail=f"Invalid image content. Detected type: {file_type}",
+                detail=f"Unable to identify image",
                 error_code="invalid_image_type"
             )
         
@@ -172,7 +172,7 @@ class ImageValidator:
             except UnidentifiedImageError as e:
                 raise ValidationException(
                     detail=f"Unable to identify image: {str(e)}",
-                    error_code="unidentified_image"
+                    error_code="invalid_image_type"
                 )
             except Exception as e:
                 raise StorageException(

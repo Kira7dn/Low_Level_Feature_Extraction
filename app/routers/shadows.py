@@ -1,6 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from app.services.image_processor import ImageProcessor
-from app.utils.cache import cache_result
 from ..services.shadow_analyzer import ShadowAnalyzer
 from ..utils.error_handler import validate_image
 
@@ -13,7 +12,6 @@ router = APIRouter(prefix="/shadows", tags=["Shadows"])
     summary="Extract shadow level",
     response_description="Shadow intensity level (High/Moderate/Low)"
 )
-@cache_result()
 async def detect_shadows(file: UploadFile = File(...)):
     """
     Extract shadow intensity level from an image.

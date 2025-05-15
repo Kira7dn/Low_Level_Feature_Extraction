@@ -5,7 +5,6 @@ from typing import List, Dict, Union
 from app.services.text_extractor import TextExtractor
 from app.utils.image_validator import validate_image
 from app.services.image_processor import ImageProcessor
-from app.utils.cache import cache_result
 
 router = APIRouter(prefix="/text", tags=["Text Extraction"])
 
@@ -45,7 +44,6 @@ class Base64TextRequest(BaseModel):
         400: {"description": "Invalid image file"},
         500: {"description": "Internal server error during text extraction"}
     })
-@cache_result()
 async def extract_text(
     file: UploadFile = File(..., description="Image file to analyze. Must be PNG, JPEG, or BMP."),
     lang: str = Query('eng', description="Language for OCR (default: English)"),

@@ -27,9 +27,9 @@ tasks/
 scripts/
 
 # Tests and examples
-tests/
-examples/
-*test*/
+# tests/
+# examples/
+# *test*/
 
 # Documentation
 *.md

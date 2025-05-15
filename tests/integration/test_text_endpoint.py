@@ -18,11 +18,11 @@ client = TestClient(app)
 
 def test_extract_text_success():
     """Validate successful text extraction"""
-    test_image_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'text_sample.png')
+    test_image_path = os.path.join(os.path.dirname(__file__), '..','test_images', 'text_sample.png')
     
     with open(test_image_path, "rb") as f:
         response = client.post(
-            "/text/extract",
+            "/api/v1/text/extract",
             files={"file": (f.name, f, "image/png")}
         )
     
@@ -40,25 +40,26 @@ def test_extract_text_success():
     
     # Response structure validation
     result = response.json()
-    assert validate_response_structure(
+    is_valid, error_msg = validate_response_structure(
         result, 
         ValidationRules.TEXT_EXTRACTION["expected_keys"],
-        [
-            lambda r: isinstance(r["lines"], list),
+        value_types={"lines": list},
+        additional_checks=[
             lambda r: 0 < len(r["lines"]) <= ValidationRules.TEXT_EXTRACTION["max_text_entries"],
             lambda r: all(len(text) >= ValidationRules.TEXT_EXTRACTION["min_text_length"] for text in r["lines"])
         ]
-    ), "Invalid response structure"
+    )
+    assert is_valid, f"Invalid response structure: {error_msg}"
     assert all(isinstance(text, str) and len(text.strip()) > 0 for text in result["lines"]), \
         "All text entries must be non-empty strings"
 
 def test_extract_text_invalid_format():
     """Test text extraction with an invalid file format"""
-    test_text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'invalid.txt')
+    test_text_path = os.path.join(os.path.dirname(__file__), '..','test_images', 'invalid.txt')
     
     with open(test_text_path, "rb") as f:
         response = client.post(
-            "/text/extract",
+            "/api/v1/text/extract",
             files={"file": ("invalid.txt", f, "text/plain")}
         )
     
@@ -69,7 +70,7 @@ def test_extract_text_invalid_format():
 
 def test_extract_text_no_file():
     """Test text extraction with no file"""
-    response = client.post("/text/extract")
+    response = client.post("/api/v1/text/extract")
     
     assert response.status_code == 422  # Validation error for missing file
     data = response.json()

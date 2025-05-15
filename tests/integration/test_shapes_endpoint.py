@@ -14,12 +14,12 @@ from tests.constants import (
 
 def test_extract_shapes_success():
     """Validate successful shapes extraction"""
-    test_image_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'shapes_sample.png')
+    test_image_path = os.path.join(os.path.dirname(__file__),'..', 'test_images', 'shapes_sample.png')
     
     client = TestClient(app)
     with open(test_image_path, "rb") as f:
         response = client.post(
-            "/shapes/detect",
+            "/api/v1/shapes/detect",
             files={"file": (f.name, f, "image/png")}
         )
         # Status code validation
@@ -60,11 +60,11 @@ def test_extract_shapes_success():
 
 def test_extract_shapes_invalid_format():
     """Test shapes extraction with an invalid file format"""
-    test_text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'invalid.txt')
+    test_text_path = os.path.join(os.path.dirname(__file__), '..', 'test_images', 'invalid.txt')
     
     with open(test_text_path, "rb") as f:
         response = client.post(
-            "/shapes/detect",
+            "/api/v1/shapes/detect",
             files={"file": ("invalid.txt", f, "text/plain")}
         )
     
@@ -77,7 +77,7 @@ def test_extract_shapes_invalid_format():
 
 def test_extract_shapes_no_file():
     """Test shapes extraction with no file"""
-    response = client.post("/shapes/detect")
+    response = client.post("/api/v1/shapes/detect")
     
     print(f"Response status code: {response.status_code}")
     print(f"Response content: {response.json()}")

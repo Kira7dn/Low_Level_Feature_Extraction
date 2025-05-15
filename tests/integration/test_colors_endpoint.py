@@ -15,11 +15,11 @@ client = TestClient(app)
 
 def test_extract_colors_success():
     """Validate successful color extraction"""
-    test_image_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'sample_design.png')
+    test_image_path = os.path.join(os.path.dirname(__file__),'..', 'test_images', 'shapes_sample.png')
     
     with open(test_image_path, "rb") as f:
         response = client.post(
-            "/colors/extract",
+            "/api/v1/colors/extract",
             files={"file": (f.name, f, "image/png")}
         )
     
@@ -37,14 +37,19 @@ def test_extract_colors_success():
     
     # Response structure validation
     result = response.json()
-    assert validate_response_structure(
+    is_valid, error_msg = validate_response_structure(
         result, 
         ValidationRules.COLOR_EXTRACTION["expected_keys"],
-        [
-            lambda r: isinstance(r["accent"], list),
+        value_types={
+            "primary": str,
+            "background": str,
+            "accent": list
+        },
+        additional_checks=[
             lambda r: len(r["accent"]) <= ValidationRules.COLOR_EXTRACTION["max_accent_colors"]
         ]
-    ), "Invalid response structure"
+    )
+    assert is_valid, f"Invalid response structure: {error_msg}"
     
     # Color validation
     assert validate_hex_color(result["primary"]), "Primary color must be a valid hex color"
@@ -54,11 +59,11 @@ def test_extract_colors_success():
 
 def test_extract_colors_invalid_format():
     """Test color extraction with an invalid file format"""
-    test_text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'test_images', 'invalid.txt')
+    test_text_path = os.path.join(os.path.dirname(__file__), '..', 'test_images', 'invalid.txt')
     
     with open(test_text_path, "rb") as f:
         response = client.post(
-            "/colors/extract",
+            "/api/v1/colors/extract",
             files={"file": ("invalid.txt", f, "text/plain")}
         )
     
@@ -69,7 +74,7 @@ def test_extract_colors_invalid_format():
 
 def test_extract_colors_no_file():
     """Test color extraction with no file"""
-    response = client.post("/colors/extract")
+    response = client.post("/api/v1/colors/extract")
     
     assert response.status_code in [400, 422]  # Either validation error or missing file error
     data = response.json()
