@@ -1,9 +1,7 @@
-import time
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import colors, text, shapes, shadows, fonts, unified_analysis
-from app.utils.error_handler import validate_image
 
 def create_app():
     global app

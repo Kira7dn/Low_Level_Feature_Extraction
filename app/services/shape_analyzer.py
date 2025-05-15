@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from typing import Dict, Any, List
-from scipy.spatial import distance
 
 class ShapeAnalyzer:
     @staticmethod
