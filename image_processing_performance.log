@@ -1,0 +1,17 @@
+2025-05-15 17:06:13,040 - app.utils.error_handler - INFO - Validating file: dashboard3.png, Content-Type: image/png
+2025-05-15 17:06:13,050 - app.services.image_processor - INFO - Image loading took 0.0057 seconds
+2025-05-15 17:06:13,051 - app.services.image_processor - INFO - Image bytes length: 47164
+2025-05-15 17:06:13,051 - app.services.image_processor - INFO - Image loading took 0.0068 seconds
+2025-05-15 17:06:13,052 - root - INFO - Performance: load_cv2_image Execution Time: 0.0071 seconds, Memory Usage: 0 bytes
+2025-05-15 17:06:44,913 - app.utils.image_validator - INFO - Detected file type: None, Filename: 58057722_2349320941800607_4475367570383306752_n.jpg
+2025-05-15 17:06:44,914 - app.utils.image_validator - ERROR - Image validation error: Unable to identify image
+2025-05-15 17:06:44,923 - app.utils.image_validator - ERROR - Traceback: Traceback (most recent call last):
+  File "/app/app/utils/image_validator.py", line 165, in validate_image
+    cls._validate_image_type(contents, filename)
+  File "/app/app/utils/image_validator.py", line 84, in _validate_image_type
+    raise ValidationException(
+app.utils.error_handler.ValidationException: Unable to identify image
+
+2025-05-15 17:07:03,072 - app.utils.image_validator - INFO - Detected file type: png, Filename: humanresource.png
+2025-05-15 17:07:51,173 - app.utils.image_validator - INFO - Detected file type: jpeg, Filename: 133867816423321665.jpg
+2025-05-15 17:08:46,626 - app.utils.image_validator - INFO - Detected file type: png, Filename: Screenshot 2023-07-24 205718.png

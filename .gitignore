@@ -54,3 +54,13 @@ dist/
 .DS_Store
 Thumbs.db
 .cursor
+
+image_processing_performance.log
+
+.roo/
+.roomodes
+.taskmasterconfig
+.windsurfrules
+package-lock.json
+package.json
+requirements-dev.txt

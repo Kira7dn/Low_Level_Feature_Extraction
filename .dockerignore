@@ -70,3 +70,11 @@ logs/
 uploads/
 ```
 .roo/
+
+image_processing_performance.log
+.roomodes
+.taskmasterconfig
+.windsurfrules
+package-lock.json
+package.json
+requirements-dev.txt
