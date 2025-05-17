@@ -1,0 +1,54 @@
+{
+  "text": "Special: |@#$%*&*()_+",
+  "lines": [
+    {
+      "text": "Special: |@#$%*&*()_+",
+      "confidence": 0.585,
+      "bbox": {
+        "x": 22,
+        "y": 28,
+        "width": 137,
+        "height": 37
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "text": "Special:",
+      "confidence": 0.93,
+      "bbox": {
+        "x": 22,
+        "y": 28,
+        "width": 137,
+        "height": 37
+      },
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 1
+    },
+    {
+      "text": "|@#$%*&*()_+",
+      "confidence": 0.24,
+      "bbox": {
+        "x": 176,
+        "y": 26,
+        "width": 260,
+        "height": 39
+      },
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 2
+    }
+  ],
+  "metadata": {
+    "language": "eng",
+    "config": null,
+    "confidence_threshold": 0.1,
+    "avg_confidence": 0.585,
+    "num_chars": 20,
+    "num_words": 2,
+    "num_lines": 1,
+    "success": true,
+    "timestamp": 1747409720.7653258
+  }
+}

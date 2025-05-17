@@ -16,23 +16,16 @@ yarn-debug.log*
 yarn-error.log*
 dev-debug.log
 
-# Project specific
-performance_metrics/
-logs/
-uploads/
-sample_images/
-test_images/
-test_results/
-tasks/
-scripts/
 
 # Tests and examples
 # tests/
 # examples/
 # *test*/
+tests/test_results/
+# tests/test_images/
+# tests/test_data/
+tests/debug/
 
-# Documentation
-*.md
 
 # Build and distribution
 build/

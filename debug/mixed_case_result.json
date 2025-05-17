@@ -1,0 +1,67 @@
+{
+  "text": "Mixed Case Text",
+  "lines": [
+    {
+      "text": "Mixed Case Text",
+      "confidence": 0.9566666666666667,
+      "bbox": {
+        "x": 23,
+        "y": 28,
+        "width": 100,
+        "height": 29
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "text": "Mixed",
+      "confidence": 0.96,
+      "bbox": {
+        "x": 23,
+        "y": 28,
+        "width": 100,
+        "height": 29
+      },
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 1
+    },
+    {
+      "text": "Case",
+      "confidence": 0.96,
+      "bbox": {
+        "x": 140,
+        "y": 28,
+        "width": 90,
+        "height": 29
+      },
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 2
+    },
+    {
+      "text": "Text",
+      "confidence": 0.95,
+      "bbox": {
+        "x": 243,
+        "y": 28,
+        "width": 79,
+        "height": 29
+      },
+      "block_num": 1,
+      "line_num": 1,
+      "word_num": 3
+    }
+  ],
+  "metadata": {
+    "language": "eng",
+    "config": null,
+    "confidence_threshold": 0.1,
+    "avg_confidence": 0.9566666666666667,
+    "num_chars": 13,
+    "num_words": 3,
+    "num_lines": 1,
+    "success": true,
+    "timestamp": 1747409720.6324682
+  }
+}

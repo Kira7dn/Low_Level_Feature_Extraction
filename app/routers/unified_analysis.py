@@ -187,6 +187,7 @@ async def extract_text_features(image):
         logger.info("Starting text feature extraction")
         img = TextExtractor.preprocess_image(image) if hasattr(TextExtractor, 'preprocess_image') else image
         result = TextExtractor.extract_text(img)
+        result = TextExtractor.postprocess_text(result)
         logger.info("Text feature extraction completed successfully")
         return result
     except Exception as e:

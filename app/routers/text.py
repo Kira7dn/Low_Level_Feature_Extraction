@@ -62,7 +62,9 @@ async def extract_text(
     """
     try:
         # Validate and load image
+        print("Validating image...")
         image_bytes = await validate_image(file)
+        print("Image validated successfully")
         try:
             cv_image = ImageProcessor.load_cv2_image(image_bytes)
         except Exception as e:
@@ -70,7 +72,7 @@ async def extract_text(
         
         # Extract text
         text_data = TextExtractor.extract_text(cv_image, lang=lang, config=config)
-        
+        print("text_data: ", text_data)
         return TextExtractionResponse(**text_data)
     except HTTPException as e:
         raise e
@@ -85,6 +87,7 @@ async def extract_text(
                     }
                 }
             )
+        print("Error extracting text: ", str(e))
         raise HTTPException(status_code=500, detail=f"Error extracting text: {str(e)}")
 
 @router.post("/extract-base64", response_model=TextExtractionResponse, 

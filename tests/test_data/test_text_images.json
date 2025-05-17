@@ -1,0 +1,29 @@
+{
+    "test_cases": [
+        {
+            "image_path": "tests/test_images/simple_text.png",
+            "expected_text": "Simple Test Text",
+            "description": "Simple black text on white background"
+        },
+        {
+            "image_path": "tests/test_images/image.png",
+            "expected_text": "VISA ® Show info CARD NUMBER exp, cw ++ 9891",
+            "description": "Payment card with VISA logo and info"
+        },
+        {
+            "image_path": "tests/test_images/numbers.png",
+            "expected_text": "1234567890",
+            "description": "Sequence of numbers"
+        },
+        {
+            "image_path": "tests/test_images/mixed_case.png",
+            "expected_text": "Mixed Case TeXt",
+            "description": "Text with mixed upper and lower case letters"
+        },
+        {
+            "image_path": "tests/test_images/Up-to-date documentation.png",
+            "expected_text": "Up-to-date documentation for LLMs and AI code editors. Copy the latest docs and code for any library — paste into Cursor, Claude, or other LLMs. Search a library (e.g. Next, React)",
+            "description": "Context7 label"
+        }
+    ]
+}

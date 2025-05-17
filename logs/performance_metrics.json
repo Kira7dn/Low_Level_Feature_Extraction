@@ -1,0 +1,32 @@
+[
+  {
+    "method": "sample_method",
+    "execution_time": 0.10031480000179727,
+    "memory_usage": 0,
+    "timestamp": 1747414270.9334252
+  },
+  {
+    "method": "sample_method",
+    "execution_time": 0.20045869999739807,
+    "memory_usage": 0,
+    "timestamp": 1747414271.1347823
+  },
+  {
+    "method": "sample_method",
+    "execution_time": 0.3003296999959275,
+    "memory_usage": 0,
+    "timestamp": 1747414271.4450362
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00042499999835854396,
+    "memory_usage": 0,
+    "timestamp": 1747414271.4642246
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003763999993680045,
+    "memory_usage": 0,
+    "timestamp": 1747414271.475212
+  }
+]
