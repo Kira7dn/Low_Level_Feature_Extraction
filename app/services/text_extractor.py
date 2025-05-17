@@ -50,7 +50,10 @@ class TextExtractor:
             confidence_threshold: Minimum confidence score (0-1) for text to be included
             
         Returns:
-            Dictionary containing extracted text and metadata
+            Dictionary with the following structure:
+            {
+                'lines': List[str]  # List of extracted text lines
+            }
         """
         start_time = time.time()
         
@@ -172,28 +175,9 @@ class TextExtractor:
                 'bbox': line['bbox']
             })
         
-        # Calculate overall confidence
-        avg_confidence = (sum(block['confidence'] for block in text_blocks) / 
-                         len(text_blocks)) if text_blocks else 0.0
-        
-        # Prepare metadata
-        metadata = {
-            'language': lang,
-            'config': config,
-            'confidence_threshold': confidence_threshold,
-            'avg_confidence': avg_confidence,
-            'num_chars': sum(len(block['text']) for block in text_blocks),
-            'num_words': sum(len(block['text'].split()) for block in text_blocks),
-            'num_lines': len(lines_list),
-            'success': True,
-            'timestamp': time.time()
-        }
-        
-        # Return in TextExtractionResponse format
+        # Return just the lines of text
         return {
-            'lines': lines_list,
-            'details': details_list,
-            'metadata': metadata
+            'lines': lines_list
         }
     
     @classmethod

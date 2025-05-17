@@ -1,28 +1,5 @@
 {
   "lines": [
     "Test Text 123"
-  ],
-  "details": [
-    {
-      "text": "Test Text 123",
-      "confidence": 0.7366666666666667,
-      "bbox": {
-        "x": 21,
-        "y": 22,
-        "width": 18,
-        "height": 8
-      }
-    }
-  ],
-  "metadata": {
-    "language": "eng",
-    "config": null,
-    "confidence_threshold": 0.1,
-    "avg_confidence": 0.7366666666666667,
-    "num_chars": 11,
-    "num_words": 3,
-    "num_lines": 1,
-    "success": true,
-    "timestamp": 1747414272.532725
-  }
+  ]
 }

@@ -1,1 +1,1 @@
-This is an invalid file for testing image upload validation.
+This is not an image

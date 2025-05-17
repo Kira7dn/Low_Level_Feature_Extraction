@@ -113,7 +113,10 @@ class FontDetector:
             image (np.ndarray): Input image
         
         Returns:
-            Dict with font detection results
+            Dict with font detection results in the format:
+            {
+                'font_family': str  # Detected font family
+            }
         """
         # Preprocess image
         binary = FontDetector.preprocess_image(image)
@@ -121,13 +124,9 @@ class FontDetector:
         # Detect text regions
         text_regions = FontDetector.detect_text_regions(binary)
         
-        # If no text regions found, return default
+        # If no text regions found, return None
         if not text_regions:
-            return {
-                "font_family": "Unknown",
-                "font_size": 0,
-                "font_weight": "Unknown"
-            }
+            return None
         
         # Use the largest text region for analysis
         largest_region = max(text_regions, key=lambda r: r[2] * r[3])
@@ -136,16 +135,9 @@ class FontDetector:
         # Extract text region
         text_region = image[y:y+h, x:x+w]
         
-        # Attempt OCR to help with font identification
-        try:
-            text = pytesseract.image_to_string(text_region)
-        except Exception:
-            text = ""
-        
+        # Return just the font family in the new format
         return {
-            "font_family": FontDetector.identify_font_family(text_region),
-            "font_size": FontDetector.estimate_font_size(h),
-            "font_weight": FontDetector.estimate_font_weight(text_region)
+            "font_family": FontDetector.identify_font_family(text_region)
         }
 
     @staticmethod

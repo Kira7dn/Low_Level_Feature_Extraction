@@ -124,17 +124,12 @@ class TestTextExtraction(TextExtractionTestBase):
         # Validate response structure
         is_valid, error_msg = validate_response_structure(
             result,
-            expected_keys=["lines", "details", "metadata"],
+            expected_keys=["lines"],
             value_types={
-                "lines": list,
-                "details": list,
-                "metadata": dict
+                "lines": list
             },
             additional_checks=[
-                lambda r: all(isinstance(line, str) for line in r["lines"]),
-                lambda r: all(isinstance(detail, dict) and 
-                           all(key in detail for key in ["text", "confidence", "bbox"]) 
-                           for detail in r["details"])
+                lambda r: all(isinstance(line, str) for line in r["lines"])
             ]
         )
         
@@ -163,9 +158,7 @@ class TestTextExtraction(TextExtractionTestBase):
             
             # Validate response structure
             assert isinstance(result, dict), f"Expected dict result, got {type(result)}"
-            assert 'metadata' in result, "Result missing 'metadata' key"
-            assert result['metadata'].get('success', False), \
-                f"Text extraction failed: {result.get('metadata', {}).get('error', 'Unknown error')}"
+            assert 'lines' in result, "Result missing 'lines' key"
             
             # Calculate match percentage
             match_percentage = self._calculate_match_percentage(
@@ -180,8 +173,6 @@ class TestTextExtraction(TextExtractionTestBase):
                 print(f"Result:  {extracted_text}")
                 print(f"Match:   {match_percentage:.1f}%")
                 print(f"Lines:   {result['lines']}")
-                print(f"Details: {[d['text'] for d in result['details']]}")
-                print(f"Confidence: {sum(d['confidence'] for d in result['details'])/len(result['details']):.1f}%")
                 print("-" * 50)
             
             # Verify minimum match percentage

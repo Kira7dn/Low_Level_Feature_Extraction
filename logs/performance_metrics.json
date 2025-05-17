@@ -1,32 +1,440 @@
 [
   {
     "method": "sample_method",
-    "execution_time": 0.10031480000179727,
+    "execution_time": 0.10038230000645854,
     "memory_usage": 0,
-    "timestamp": 1747414270.9334252
+    "timestamp": 1747496900.0559268
   },
   {
     "method": "sample_method",
-    "execution_time": 0.20045869999739807,
+    "execution_time": 0.20052929999656044,
     "memory_usage": 0,
-    "timestamp": 1747414271.1347823
+    "timestamp": 1747496900.2574077
   },
   {
     "method": "sample_method",
-    "execution_time": 0.3003296999959275,
+    "execution_time": 0.3004679000005126,
     "memory_usage": 0,
-    "timestamp": 1747414271.4450362
+    "timestamp": 1747496900.5669491
   },
   {
     "method": "load_cv2_image",
-    "execution_time": 0.00042499999835854396,
+    "execution_time": 0.0005164000031072646,
     "memory_usage": 0,
-    "timestamp": 1747414271.4642246
+    "timestamp": 1747496900.586394
   },
   {
     "method": "load_cv2_image",
-    "execution_time": 0.0003763999993680045,
+    "execution_time": 0.00042669998947530985,
     "memory_usage": 0,
-    "timestamp": 1747414271.475212
+    "timestamp": 1747496900.596366
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006051000091247261,
+    "memory_usage": 0,
+    "timestamp": 1747496962.5502243
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.000603599997702986,
+    "memory_usage": 0,
+    "timestamp": 1747496975.8634934
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006370999908540398,
+    "memory_usage": 0,
+    "timestamp": 1747496983.81963
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0013023000210523605,
+    "memory_usage": 0,
+    "timestamp": 1747496997.5772429
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0009037999843712896,
+    "memory_usage": 0,
+    "timestamp": 1747497083.1417048
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.005636300018522888,
+    "memory_usage": 0,
+    "timestamp": 1747497170.9112387
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00788960000500083,
+    "memory_usage": 0,
+    "timestamp": 1747497325.0145264
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003347999881953001,
+    "memory_usage": 0,
+    "timestamp": 1747497412.7418113
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00037880000309087336,
+    "memory_usage": 0,
+    "timestamp": 1747497413.203145
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003721999819390476,
+    "memory_usage": 0,
+    "timestamp": 1747497413.4135184
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.000604200002271682,
+    "memory_usage": 0,
+    "timestamp": 1747497413.654117
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007159999804571271,
+    "memory_usage": 0,
+    "timestamp": 1747497413.8876948
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003343000134918839,
+    "memory_usage": 0,
+    "timestamp": 1747497528.7442298
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00042039999971166253,
+    "memory_usage": 0,
+    "timestamp": 1747497529.1704457
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003487000067252666,
+    "memory_usage": 0,
+    "timestamp": 1747497529.3785055
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006117000011727214,
+    "memory_usage": 0,
+    "timestamp": 1747497529.6027293
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007183000270742923,
+    "memory_usage": 0,
+    "timestamp": 1747497529.8353794
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003603000077418983,
+    "memory_usage": 0,
+    "timestamp": 1747497577.3653758
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003278000222053379,
+    "memory_usage": 0,
+    "timestamp": 1747497637.4947624
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004687999899033457,
+    "memory_usage": 0,
+    "timestamp": 1747498206.6117122
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004416000156197697,
+    "memory_usage": 0,
+    "timestamp": 1747498206.8175497
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003769000177271664,
+    "memory_usage": 0,
+    "timestamp": 1747498206.847412
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.000728700018953532,
+    "memory_usage": 0,
+    "timestamp": 1747498206.877184
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0008292999991681427,
+    "memory_usage": 0,
+    "timestamp": 1747498206.9064558
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004278999986127019,
+    "memory_usage": 0,
+    "timestamp": 1747498692.7458553
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00038750001112930477,
+    "memory_usage": 0,
+    "timestamp": 1747498693.2199428
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00038889999268576503,
+    "memory_usage": 0,
+    "timestamp": 1747498693.4352505
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006689000001642853,
+    "memory_usage": 0,
+    "timestamp": 1747498693.665521
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0008331999997608364,
+    "memory_usage": 0,
+    "timestamp": 1747498693.9068818
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004112999886274338,
+    "memory_usage": 0,
+    "timestamp": 1747498742.8074086
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004120999947190285,
+    "memory_usage": 0,
+    "timestamp": 1747498743.1701238
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00033859998802654445,
+    "memory_usage": 0,
+    "timestamp": 1747498743.382656
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007040000054985285,
+    "memory_usage": 0,
+    "timestamp": 1747498743.6150117
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0008135999960359186,
+    "memory_usage": 0,
+    "timestamp": 1747498743.8566525
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003899000003002584,
+    "memory_usage": 0,
+    "timestamp": 1747498784.4509532
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00040160000207833946,
+    "memory_usage": 0,
+    "timestamp": 1747498784.8105226
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0004884000227320939,
+    "memory_usage": 0,
+    "timestamp": 1747498785.0223677
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007047999824862927,
+    "memory_usage": 0,
+    "timestamp": 1747498785.2532883
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007934999885037541,
+    "memory_usage": 0,
+    "timestamp": 1747498785.4891515
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006196000031195581,
+    "memory_usage": 0,
+    "timestamp": 1747498922.54192
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00043750001350417733,
+    "memory_usage": 0,
+    "timestamp": 1747498923.0891826
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003789000038523227,
+    "memory_usage": 0,
+    "timestamp": 1747498923.3010125
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006547000084538013,
+    "memory_usage": 0,
+    "timestamp": 1747498923.5280616
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007998999790288508,
+    "memory_usage": 0,
+    "timestamp": 1747498923.7741044
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0003476999991107732,
+    "memory_usage": 0,
+    "timestamp": 1747498957.7597961
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00036490001366473734,
+    "memory_usage": 0,
+    "timestamp": 1747499005.257114
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00039420000393874943,
+    "memory_usage": 0,
+    "timestamp": 1747499071.7977467
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.007599600008688867,
+    "memory_usage": 0,
+    "timestamp": 1747499191.62225
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.007500900013837963,
+    "memory_usage": 0,
+    "timestamp": 1747499396.2441132
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0005623000033665448,
+    "memory_usage": 0,
+    "timestamp": 1747499439.4262693
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.000667800020892173,
+    "memory_usage": 0,
+    "timestamp": 1747499487.8145213
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0005080000264570117,
+    "memory_usage": 0,
+    "timestamp": 1747499488.0350788
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0005050999752711505,
+    "memory_usage": 0,
+    "timestamp": 1747499488.4465694
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006292000180110335,
+    "memory_usage": 0,
+    "timestamp": 1747499488.666907
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0009126000222750008,
+    "memory_usage": 0,
+    "timestamp": 1747499488.9204462
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.007685399992624298,
+    "memory_usage": 0,
+    "timestamp": 1747499670.9197047
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.008304600021801889,
+    "memory_usage": 0,
+    "timestamp": 1747499999.7812247
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.009092099993722513,
+    "memory_usage": 0,
+    "timestamp": 1747500202.8025296
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006501000025309622,
+    "memory_usage": 0,
+    "timestamp": 1747500309.8470914
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00044520001392811537,
+    "memory_usage": 0,
+    "timestamp": 1747500310.048682
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00040160000207833946,
+    "memory_usage": 0,
+    "timestamp": 1747500310.0826166
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006810000049881637,
+    "memory_usage": 0,
+    "timestamp": 1747500310.109782
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.000835299986647442,
+    "memory_usage": 0,
+    "timestamp": 1747500310.1384747
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0006747000152245164,
+    "memory_usage": 0,
+    "timestamp": 1747500461.990564
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.00039659999310970306,
+    "memory_usage": 0,
+    "timestamp": 1747500462.4053047
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0005960999988019466,
+    "memory_usage": 0,
+    "timestamp": 1747500462.7309818
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007070999999996275,
+    "memory_usage": 0,
+    "timestamp": 1747500462.8938704
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.0007766000053379685,
+    "memory_usage": 0,
+    "timestamp": 1747500463.0648856
   }
 ]

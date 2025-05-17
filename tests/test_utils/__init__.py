@@ -1,5 +1,5 @@
 """Test utilities for the application."""
 
-from .image_factory import TestImageFactory, TextAlignment, TextEffect
-
-__all__ = ['TestImageFactory', 'TextAlignment', 'TextEffect']
+# No need to expose anything from features_generator as it's self-contained
+# and meant to be run as a script
+__all__ = []

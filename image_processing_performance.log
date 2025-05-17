@@ -15,3 +15,44 @@ app.utils.error_handler.ValidationException: Unable to identify image
 2025-05-15 17:07:03,072 - app.utils.image_validator - INFO - Detected file type: png, Filename: humanresource.png
 2025-05-15 17:07:51,173 - app.utils.image_validator - INFO - Detected file type: jpeg, Filename: 133867816423321665.jpg
 2025-05-15 17:08:46,626 - app.utils.image_validator - INFO - Detected file type: png, Filename: Screenshot 2023-07-24 205718.png
+2025-05-17 22:49:57,574 - app.routers.unified_analysis - INFO - Starting image analysis request f878dbb7-73b1-4845-9d96-51bebd96a0ac
+2025-05-17 22:49:57,577 - app.services.image_processor - INFO - Image loading took 0.0010 seconds
+2025-05-17 22:49:57,577 - app.services.image_processor - INFO - Image bytes length: 4264
+2025-05-17 22:49:57,577 - app.services.image_processor - INFO - Image loading took 0.0010 seconds
+2025-05-17 22:49:57,577 - root - INFO - Performance: load_cv2_image Execution Time: 0.0013 seconds, Memory Usage: 0 bytes
+2025-05-17 22:49:57,777 - app.routers.unified_analysis - ERROR - Error extracting fonts for request f878dbb7-73b1-4845-9d96-51bebd96a0ac: type object 'FontDetector' has no attribute 'detect_fonts'
+2025-05-17 22:49:57,778 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/analyze "HTTP/1.1 200 OK"
+2025-05-17 22:51:23,140 - app.routers.unified_analysis - INFO - Starting image analysis request 2e1d4db5-d2e5-4aac-966c-5ed5ec01af87
+2025-05-17 22:51:23,140 - app.routers.unified_analysis - INFO - File upload details - filename: test_image.png, content_type: image/png
+2025-05-17 22:51:23,140 - app.routers.unified_analysis - INFO - Read 4264 bytes from uploaded file
+2025-05-17 22:51:23,140 - app.routers.unified_analysis - INFO - File signature (first 16 bytes): 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52
+2025-05-17 22:51:23,141 - app.services.image_processor - INFO - Image loading took 0.0010 seconds
+2025-05-17 22:51:23,141 - app.services.image_processor - INFO - Image bytes length: 4264
+2025-05-17 22:51:23,141 - app.services.image_processor - INFO - Image loading took 0.0010 seconds
+2025-05-17 22:51:23,141 - root - INFO - Performance: load_cv2_image Execution Time: 0.0009 seconds, Memory Usage: 0 bytes
+2025-05-17 22:51:23,143 - app.routers.unified_analysis - INFO - Processed image - shape: (117, 370, 3), dtype: uint8
+2025-05-17 22:51:23,337 - app.routers.unified_analysis - ERROR - Error extracting fonts for request 2e1d4db5-d2e5-4aac-966c-5ed5ec01af87: type object 'FontDetector' has no attribute 'detect_fonts'
+2025-05-17 22:51:23,338 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/analyze "HTTP/1.1 200 OK"
+2025-05-17 22:52:50,903 - app.routers.unified_analysis - INFO - Starting image analysis request c84c6a4d-01b9-42cb-a0d5-48d5086dd7fb
+2025-05-17 22:52:50,903 - app.routers.unified_analysis - INFO - File upload details - filename: test_image.png, content_type: image/png
+2025-05-17 22:52:50,903 - app.routers.unified_analysis - INFO - Read 4264 bytes from uploaded file
+2025-05-17 22:52:50,905 - app.routers.unified_analysis - INFO - File signature (first 16 bytes): 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52
+2025-05-17 22:52:50,909 - app.services.image_processor - INFO - Image loading took 0.0046 seconds
+2025-05-17 22:52:50,909 - app.services.image_processor - INFO - Image bytes length: 4264
+2025-05-17 22:52:50,909 - app.services.image_processor - INFO - Image loading took 0.0046 seconds
+2025-05-17 22:52:50,909 - root - INFO - Performance: load_cv2_image Execution Time: 0.0056 seconds, Memory Usage: 0 bytes
+2025-05-17 22:52:50,911 - app.routers.unified_analysis - INFO - Processed image - shape: (117, 370, 3), dtype: uint8
+2025-05-17 22:52:51,181 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/analyze "HTTP/1.1 200 OK"
+2025-05-17 22:55:25,005 - app.routers.unified_analysis - INFO - Starting image analysis request a7725483-b40d-4d34-a388-e9abfdbc6518
+2025-05-17 22:55:25,005 - app.routers.unified_analysis - INFO - File upload details - filename: test_image.png, content_type: image/png
+2025-05-17 22:55:25,005 - app.routers.unified_analysis - INFO - Read 4264 bytes from uploaded file
+2025-05-17 22:55:25,006 - app.routers.unified_analysis - INFO - File signature (first 16 bytes): 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52
+2025-05-17 22:55:25,013 - app.services.image_processor - INFO - Image loading took 0.0066 seconds
+2025-05-17 22:55:25,014 - app.services.image_processor - INFO - Image bytes length: 4264
+2025-05-17 22:55:25,014 - app.services.image_processor - INFO - Image loading took 0.0077 seconds
+2025-05-17 22:55:25,014 - root - INFO - Performance: load_cv2_image Execution Time: 0.0079 seconds, Memory Usage: 0 bytes
+2025-05-17 22:55:25,015 - app.routers.unified_analysis - INFO - Processed image - shape: (117, 370, 3), dtype: uint8
+2025-05-17 22:55:25,015 - app.routers.unified_analysis - INFO - Starting color extraction for request a7725483-b40d-4d34-a388-e9abfdbc6518
+2025-05-17 22:55:25,034 - app.routers.unified_analysis - INFO - Extracted colors: {'primary': '#181818', 'background': '#949494', 'accent': ['#f4f4f4', '#cacaca', '#5a5a5a']}
+2025-05-17 22:55:25,034 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#181818', 'background': '#949494', 'accent': ['#f4f4f4', '#cacaca', '#5a5a5a']}
+2025-05-17 22:55:25,257 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/analyze "HTTP/1.1 200 OK"
