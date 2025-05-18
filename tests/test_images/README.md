@@ -15,4 +15,4 @@ This directory contains test images and their expected analysis results.
 
 ## Expected Results
 
-Each test case has a corresponding JSON file with the expected analysis results. The results follow the unified analysis schema.
+Each test case has a corresponding JSON file with the expected analysis results. The results follow the analysis schema.

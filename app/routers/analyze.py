@@ -1,65 +1,81 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, Depends, Query, Request
-from typing import Dict, List, Optional, Any, Union, Literal
-from enum import Enum
+from __future__ import annotations
+
 import asyncio
-import cv2
 import logging
-import aiohttp
-from uuid import uuid4
-from pydantic import BaseModel, Field, HttpUrl
+import re
+from enum import Enum
 from io import BytesIO
-import mimetypes
+from typing import Any, Dict, List, Literal, Optional, Union
+from uuid import uuid4
 
-# Import existing service layers
-from ..services.image_processor import ImageProcessor
-from ..services.color_extractor import ColorExtractor, ColorPalette
-from ..services.text_extractor import TextExtractor
-from ..services.font_detector import FontDetector
-from ..services.models import TextFeatures as TextFeaturesModel, TextFeatures, FontFeatures as FontFeaturesModel, FontFeatures
+import aiohttp
+import cv2
+import numpy as np
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
+from pydantic import BaseModel, Field, HttpUrl
 
-# Import utility modules
-from ..utils.image_validator import validate_image
+# Local imports
 from ..core.config import settings
+from ..services.color_extractor import ColorExtractor, ColorPalette
+from ..services.font_detector import FontDetector
+from ..services.image_processor import ImageProcessor
+from ..services.models import FontFeatures, TextFeatures
+from ..services.text_extractor import TextExtractor
+from ..utils.image_validator import validate_image
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+# Initialize router
+router = APIRouter(
+    prefix="/analyze",
+    tags=["analyze"],
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid request"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Internal server error"},
+    },
+)
 
 # ===== Response Models =====
-
-# Using ColorPalette from color_extractor for consistency
-
-# Text and Font features are now defined in app/services/models.py
 
 class FeatureError(BaseModel):
     """Error details for a failed feature extraction.
     
     Attributes:
-        code (str): A unique identifier for the error type. Should be in SCREAMING_SNAKE_CASE.
-        message (str): Human-readable explanation of the error.
-        severity (Literal['error', 'warning']): Indicates error severity level.
+        code: A unique identifier for the error type in SCREAMING_SNAKE_CASE.
+        message: Human-readable explanation of the error.
+        severity: Indicates error severity level.
             - 'error': Critical issue that prevents feature extraction.
             - 'warning': Non-critical issue that allows partial processing.
     """
     code: str = Field(..., description="Error code in SCREAMING_SNAKE_CASE")
     message: str = Field(..., description="Human-readable error message")
-    severity: Literal['error', 'warning'] = Field(
-        "error", 
-        description="Error severity level ('error' or 'warning')"
+    severity: Literal["error", "warning"] = Field(
+        "error",
+        description="Error severity level ('error' or 'warning')",
     )
 
 class AnalysisMetadata(BaseModel):
     """Metadata about the analysis process.
     
     Attributes:
-        total_features_requested (int): Total number of features requested for extraction.
+        total_features_requested: Total number of features requested for extraction.
             Must be >= 0.
-        features_processed (int): Number of features successfully processed.
+        features_processed: Number of features successfully processed.
             Must be >= 0 and <= total_features_requested.
-        features_failed (int): Number of features that failed to process.
+        features_failed: Number of features that failed to process.
             Must be >= 0 and <= total_features_requested.
-        processing_time_ms (float): Total processing time in milliseconds.
+        processing_time_ms: Total processing time in milliseconds.
             Includes all feature extraction and preprocessing time.
     """
     total_features_requested: int = Field(
@@ -90,119 +106,139 @@ class UnifiedAnalysisResponse(BaseModel):
     containing the extracted features, any errors that occurred, and processing metadata.
     
     Attributes:
-        status (Literal['success', 'partial', 'failure']): 
+        status: Indicates the overall status of the analysis.
             - 'success': All requested features were extracted successfully.
             - 'partial': Some features were extracted, but some failed.
             - 'failure': No features could be extracted.
-        request_id (str): Unique identifier for the request, useful for debugging.
-        features (Dict[str, Union[Dict[str, Any], ColorPalette, TextFeaturesModel, FontFeaturesModel]]):
-            Dictionary where keys are feature names (e.g., 'colors', 'text') and values are
-            the corresponding feature objects.
-        errors (Dict[str, FeatureError]): 
-            Dictionary of errors that occurred during processing, keyed by feature name.
+        request_id: Unique identifier for the request, useful for debugging.
+        features: Dictionary of extracted features where keys are feature names
+            (e.g., 'colors', 'text') and values are the corresponding feature objects.
+        errors: Dictionary of errors that occurred during processing, keyed by feature name.
             Empty if no errors occurred.
-        metadata (AnalysisMetadata): Additional metadata about the analysis process.
-            
-    Example:
-        ```json
-        {
-            "status": "success",
-            "request_id": "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8",
-            "features": {
-                "colors": {
-                    "primary": "#FF5733",
-                    "background": "#FFFFFF",
-                    "accent": ["#33FF57", "#3357FF"]
-                },
-                "text": {
-                    "lines": ["Sample text"],
-                    "details": [],
-                    "metadata": {}
-                }
-            },
-            "errors": {},
-            "metadata": {
-                "total_features_requested": 2,
-                "features_processed": 2,
-                "features_failed": 0,
-                "processing_time_ms": 123.45
-            }
-        }
-        ```
+        metadata: Additional metadata about the analysis process.
     """
-    status: Literal['success', 'partial', 'failure']
+    status: Literal["success", "partial", "failure"]
     request_id: str
     features: Dict[
-        str, 
-        Optional[Union[
-            Dict[str, Any],  # For raw feature data
-            ColorPalette,
-            TextFeaturesModel,
-            FontFeaturesModel
-        ]]
-    ] = Field(
-        ...,
-        description="Extracted features. Keys are feature names, values are feature data."
-    )
+        str,
+        Optional[Union[Dict[str, Any], ColorPalette, TextFeatures, FontFeatures]],
+    ] = Field(..., description="Extracted features keyed by feature name")
     errors: Dict[str, FeatureError] = Field(
         default_factory=dict,
-        description="Errors that occurred during processing, keyed by feature name"
+        description="Errors that occurred during processing, keyed by feature name",
     )
-    metadata: AnalysisMetadata = Field(
-        ...,
-        description="Metadata about the analysis process"
-    )
-    
+    metadata: AnalysisMetadata = Field(..., description="Metadata about the analysis process")
+
     class Config:
         json_encoders = {
-            # Ensure proper serialization of any custom types
-            'ColorPalette': lambda v: v.dict() if hasattr(v, 'dict') else v,
-            'TextFeaturesModel': lambda v: v.dict() if hasattr(v, 'dict') else v,
-            'FontFeaturesModel': lambda v: v.dict() if hasattr(v, 'dict') else v,
+            "ColorPalette": lambda v: v.dict() if hasattr(v, "dict") else v,
+            "TextFeatures": lambda v: v.dict() if hasattr(v, "dict") else v,
+            "FontFeatures": lambda v: v.dict() if hasattr(v, "dict") else v,
+        }
+        schema_extra = {
+            "example": {
+                "status": "success",
+                "request_id": "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8",
+                "features": {
+                    "colors": {
+                        "primary": "#FF5733",
+                        "background": "#FFFFFF",
+                        "accent": ["#33FF57", "#3357FF"],
+                    },
+                    "text": {
+                        "lines": ["Sample text"],
+                        "details": [],
+                        "metadata": {},
+                    },
+                },
+                "errors": {},
+                "metadata": {
+                    "total_features_requested": 2,
+                    "features_processed": 2,
+                    "features_failed": 0,
+                    "processing_time_ms": 123.45,
+                },
+            }
         }
 
 # ===== Helper Functions =====
 
-async def download_image(url: Union[str, HttpUrl], max_size: int = 10 * 1024 * 1024, timeout: int = 30) -> tuple[bytes, str]:
-    """
-    Download an image from a URL with size and timeout limits.
+async def download_image(
+    url: Union[str, HttpUrl],
+    max_size: int = 10 * 1024 * 1024,
+    timeout: int = 30,
+) -> tuple[bytes, str]:
+    """Download an image from a URL with size and timeout limits.
     
     Args:
-        url: The URL of the image to download
-        max_size: Maximum allowed image size in bytes (default: 10MB)
-        timeout: Request timeout in seconds (default: 30)
+        url: The URL of the image to download. Can be a string or HttpUrl.
+            If string doesn't have a scheme, 'https://' will be added.
+        max_size: Maximum allowed image size in bytes (default: 10MB).
+        timeout: Request timeout in seconds (default: 30).
         
     Returns:
-        tuple[bytes, str]: A tuple containing (image_data, content_type)
+        A tuple containing (image_data, content_type).
         
     Raises:
-        HTTPException: If download fails or validation fails
+        HTTPException: If download fails or validation fails.
+        ValueError: If URL format is invalid.
     """
     timeout = aiohttp.ClientTimeout(total=timeout)
     
+    # Convert to string and clean up the URL
+    url_str = str(url).strip()
+    
+    # Add https:// if no scheme is present
+    if not url_str.startswith(('http://', 'https://')):
+        url_str = f'https://{url_str}'
+        logger.debug(f"Added https:// scheme to URL: {url_str}")
+    
+    # Basic URL validation
     try:
-        # Convert string URL to HttpUrl if needed
-        if isinstance(url, str):
-            from pydantic import HttpUrl
-            try:
-                url = HttpUrl(url)
-            except Exception as e:
-                raise ValueError(f"Invalid URL format: {str(e)}")
-                
+        # Simple validation - check if it looks like a URL
+        if not re.match(r'^https?://[^\s/$.?#].[^\s]*$', url_str):
+            raise ValueError("Invalid URL format")
+            
+        # Try to parse with urllib for basic validation
+        from urllib.parse import urlparse
+        parsed = urlparse(url_str)
+        if not all([parsed.scheme, parsed.netloc]):
+            raise ValueError("Missing scheme or netloc")
+            
+    except Exception as e:
+        logger.error(f"Invalid URL format: {url_str} - {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": {
+                    "code": "INVALID_URL",
+                    "message": f"Invalid URL format: {str(e)}"
+                }
+            }
+        )
+    
+    try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(str(url)) as response:
+            async with session.get(url_str) as response:
                 if response.status != 200:
+                    error_msg = f"Failed to download image: HTTP {response.status}"
+                    logger.error(f"{error_msg} from {url_str}")
                     raise HTTPException(
-                        status_code=400,
-                        detail=f"Failed to download image: HTTP {response.status}"
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": {
+                                "code": "DOWNLOAD_FAILED",
+                                "message": error_msg
+                            }
+                        }
                     )
                 
                 # Check content type
-                content_type = response.headers.get('content-type', '').lower()
-                if not content_type.startswith('image/'):
+                content_type = response.headers.get("content-type", "").lower()
+                if not content_type.startswith("image/"):
                     raise HTTPException(
-                        status_code=400,
-                        detail=f"URL does not point to a valid image. Content type: {content_type}"
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"URL does not point to a valid image. Content type: {content_type}",
                     )
                 
                 # Stream the download with size limit
@@ -246,6 +282,11 @@ async def download_image(url: Union[str, HttpUrl], max_size: int = 10 * 1024 * 1
 
 # ===== Router and Endpoints =====
 
+@router.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify route registration."""
+    return {"message": "Test endpoint is working!"}
+
 class PreprocessingMode(str, Enum):
     NONE = "none"
     AUTO = "auto"
@@ -276,22 +317,38 @@ class FeatureType(str, Enum):
     TEXT = "text"
     FONTS = "fonts"
 
+# @router.post(
+#     "/",
+#     response_model=UnifiedAnalysisResponse,
+#     status_code=status.HTTP_200_OK,
+#     summary="Image analysis",
+#     response_description="Comprehensive analysis of image features",
+#     responses={
+#         200: {"description": "Successful analysis"},
+#         400: {"description": "Invalid request, image format, or URL"},
+#         408: {"description": "Request timeout"},
+#         413: {"description": "Image file too large"},
+#         415: {"description": "Unsupported media type"},
+#         422: {"description": "Validation error"},
+#         429: {"description": "Rate limit exceeded"},
+#         500: {"description": "Internal server error"}
+#     }
+# )
 @router.post(
-    "/analyze",
+    "/",
     response_model=UnifiedAnalysisResponse,
     status_code=status.HTTP_200_OK,
-    summary="Unified image analysis",
     response_description="Comprehensive analysis of image features",
     responses={
-        200: {"description": "Successful analysis"},
-        400: {"description": "Invalid request, image format, or URL"},
-        408: {"description": "Request timeout"},
-        413: {"description": "Image file too large"},
-        415: {"description": "Unsupported media type"},
-        422: {"description": "Validation error"},
-        429: {"description": "Rate limit exceeded"},
-        500: {"description": "Internal server error"}
-    }
+        status.HTTP_200_OK: {"model": UnifiedAnalysisResponse},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid request parameters or image format"},
+        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {"description": "Image file too large"},
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {"description": "Unsupported image format"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Validation error"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Internal server error"},
+    },
+    summary="Analyze image",
+    description="Process an image and extract features like colors, text, and fonts.",
 )
 async def analyze_image(
     request: Request,
@@ -305,15 +362,27 @@ async def analyze_image(
         - 'performance': Optimized for speed (may reduce accuracy)
         """
     ),
-    features: Optional[List[FeatureType]] = Form(
+    features: Optional[List[FeatureType]] = Query(
         None,
         description="""
-        List of features to extract. If not specified, all features will be extracted.
-        Available features:
-        - 'colors': Extract dominant colors and color scheme
-        - 'text': Extract text content and metadata using OCR
-        - 'fonts': Identify font properties and styles
-        """
+        Select one or more features to extract. If not specified, all features will be extracted.
+        Hold Ctrl/Cmd to select multiple options.
+        """,
+        examples={
+            "all_features": {
+                "summary": "Extract all features",
+                "description": "Extract colors, text, and fonts (same as not specifying features)",
+                "value": None,
+            },
+            "colors_only": {
+                "summary": "Extract colors only",
+                "value": [FeatureType.COLORS],
+            },
+            "text_and_fonts": {
+                "summary": "Extract text and fonts",
+                "value": [FeatureType.TEXT, FeatureType.FONTS],
+            },
+        },
     ),
     file: Optional[UploadFile] = File(None),
     url: Optional[Any] = Form(None)
@@ -399,20 +468,28 @@ async def analyze_image(
 
         # Get image bytes from the appropriate source
         if url:
-            logger.info(f"Downloading image from URL: {url}")
+            logger.info(f"Processing image from URL: {url}")
             try:
-                # Use the URL directly (it will be validated by download_image)
+                # Pass the URL directly to download_image which will handle the scheme
                 image_bytes, content_type = await download_image(
                     url,
                     max_size=settings.MAX_IMAGE_SIZE_BYTES,
                     timeout=settings.IMAGE_DOWNLOAD_TIMEOUT
                 )
                 logger.info(f"Downloaded {len(image_bytes)} bytes, content-type: {content_type}")
+            except HTTPException as he:
+                # Re-raise HTTP exceptions as-is
+                raise he
             except Exception as e:
                 logger.error(f"Failed to process URL: {str(e)}")
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid URL or failed to download image: {str(e)}"
+                    detail={
+                        "error": {
+                            "code": "INVALID_URL",
+                            "message": f"Invalid URL or failed to download image: {str(e)}"
+                        }
+                    }
                 )
         else:
             logger.info(f"Processing uploaded file: {file.filename}")
@@ -451,9 +528,9 @@ async def analyze_image(
             FeatureType.TEXT: lambda: extract_text_features(cv_image, request_id),
             FeatureType.FONTS: lambda: extract_font_features(cv_image, request_id)
         }
-            
-        # Determine which features to extract
-        features_to_extract = features or list(feature_map.keys())
+        
+        # If no features specified, use all features
+        features_to_extract = list(feature_map.keys()) if not features else features
         
         # Execute selected tasks in parallel
         tasks = [
@@ -489,81 +566,65 @@ async def analyze_image(
         )
 
 async def validate_and_preprocess_image(
-    image_bytes: bytes, 
+    image_bytes: bytes,
     preprocessing: PreprocessingMode,
     request_id: str
-) -> Any:
+) -> np.ndarray:
     """Validate and preprocess the input image.
     
-    This function performs validation and preprocessing on the input image bytes
-    according to the specified preprocessing mode. It handles image loading,
-    format validation, and applies appropriate preprocessing operations.
-    
     Args:
-        image_bytes: Raw image data as bytes. Must be a valid image file.
-        preprocessing: Preprocessing mode to apply to the image.
-        request_id: Unique identifier for the request, used for logging.
+        image_bytes: Raw image data
+        preprocessing: Preprocessing mode
+        request_id: Request ID for logging
         
     Returns:
-        numpy.ndarray: Preprocessed image in BGR format.
-        
-    Raises:
-        HTTPException: 
-            - 400: If the image is invalid or cannot be processed.
-            - 413: If the image dimensions exceed maximum allowed size.
-            - 415: If the image format is not supported.
-            - 500: If an unexpected error occurs during processing.
+        np.ndarray: Preprocessed image in BGR format
     """
     try:
-        # Validate image
-        cv_image = ImageProcessor.load_cv2_image(image_bytes)
+        # Apply standard preprocessing
+        cv_image = ImageProcessor.auto_process_image(
+            image_bytes,
+            max_width=settings.IMAGE_MAX_WIDTH,
+            max_height=settings.IMAGE_MAX_HEIGHT,
+            quality=settings.IMAGE_QUALITY
+        )
         
-        # Ensure image is BGR (most services expect this)
-        if len(cv_image.shape) == 2 or (len(cv_image.shape) == 3 and cv_image.shape[2] == 1):
-            cv_image = cv2.cvtColor(cv_image, cv2.COLOR_GRAY2BGR)
+        # Apply additional preprocessing based on mode
+        if preprocessing == PreprocessingMode.HIGH_QUALITY:
+            # Example: Apply denoising
+            cv_image = cv2.fastNlMeansDenoisingColored(
+                cv_image,
+                None,
+                h=3,
+                hColor=3,
+                templateWindowSize=7,
+                searchWindowSize=21
+            )
             
-        # Apply preprocessing based on mode
-        if preprocessing != PreprocessingMode.NONE:
-            max_dimension = {
-                PreprocessingMode.AUTO: 2000,
-                PreprocessingMode.HIGH_QUALITY: 4000,
-                PreprocessingMode.PERFORMANCE: 1000
-            }.get(preprocessing, 2000)
-                
-            height, width = cv_image.shape[:2]
-            if width > max_dimension or height > max_dimension:
-                if width > height:
-                    new_width = max_dimension
-                    new_height = int(height * (max_dimension / width))
-                else:
-                    new_height = max_dimension
-                    new_width = int(width * (max_dimension / height))
-                    
-                cv_image = cv2.resize(
-                    cv_image, 
-                    (new_width, new_height), 
-                    interpolation=cv2.INTER_AREA
-                )
-                logger.debug(f"Resized image to {new_width}x{new_height} for request {request_id}")
-                
+        logger.info(
+            f"Processed image - shape: {cv_image.shape}, "
+            f"dtype: {cv_image.dtype}, "
+            f"min: {cv_image.min()}, "
+            f"max: {cv_image.max()}"
+        )
         return cv_image
         
     except Exception as e:
         logger.error(f"Image validation failed for request {request_id}: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
             detail={
                 "error": "Invalid image file",
                 "request_id": request_id,
                 "type": type(e).__name__
             }
         )
-
+        
 def process_feature_results(
-    features_requested: List[FeatureType],
-    results: List[Union[Dict[str, Any], Exception]],
+    features_requested: list[FeatureType],
+    results: list[Union[dict[str, Any], Exception]],
     processing_time_ms: float,
-    request_id: str
+    request_id: str,
 ) -> UnifiedAnalysisResponse:
     """Process and format the results from feature extraction.
     
@@ -578,83 +639,114 @@ def process_feature_results(
             if the feature extraction failed.
         processing_time_ms: Total time taken for processing all features, in milliseconds.
         request_id: Unique identifier for the request, used for logging and tracing.
-        
+            
     Returns:
-        UnifiedAnalysisResponse: A structured response containing the processed results,
-            any errors that occurred, and processing metadata.
+        A structured response containing the processed results, any errors that occurred,
+        and processing metadata.
             
     Raises:
         ValueError: If the number of results doesn't match the number of requested features.
-        
+            
     Notes:
         - The function calculates the overall status based on the success/failure of
           individual feature extractions.
         - Each feature result is validated and converted to the appropriate Pydantic model.
         - Errors are captured and included in the response without failing the entire request.
     """
-    features: Dict[
-        str, 
-        Optional[Union[Dict[str, Any], ColorPalette, TextFeatures, FontFeatures]]
-    ] = {}
-    errors: Dict[str, FeatureError] = {}
-    status: Literal['success', 'partial', 'failure'] = 'success'
-    features_processed = 0
-    features_failed = 0
+    if len(features_requested) != len(results):
+        error_msg = (
+            f"Mismatch between requested features ({len(features_requested)}) "
+            f"and results ({len(results)})"
+        )
+        logger.error(f"[{request_id}] {error_msg}")
+        raise ValueError(error_msg)
     
-    # Initialize all requested features as None
-    for feature in features_requested:
-        features[feature.value] = None
+    features: dict[str, Any] = {}
+    errors: dict[str, FeatureError] = {}
     
-    for feature, result in zip(features_requested, results):
+    for feature, result in zip(features_requested, results, strict=True):
+        feature_name = feature.value
+        
         if isinstance(result, Exception):
-            status = 'partial' if status != 'failure' else 'failure'
-            errors[feature.value] = FeatureError(
-                code=type(result).__name__,
-                message=str(result),
-                severity='error'
+            # Handle error case
+            error_msg = str(result)
+            error_type = type(result).__name__
+            logger.error(
+                f"[{request_id}] Error processing {feature_name}: {error_msg}",
+                exc_info=result,
             )
-            features_failed += 1
+            
+            errors[feature_name] = FeatureError(
+                code=error_type,
+                message=error_msg,
+                severity="error",
+            )
         else:
+            # Handle successful result
             try:
-                # If result is already a Pydantic model, use it directly
-                if isinstance(result, (ColorPalette, TextFeatures, FontFeatures)):
-                    features[feature.value] = result
-                # If result is a dict, convert it to the appropriate model
+                # Convert result to appropriate model based on feature type
+                if feature == FeatureType.COLORS and isinstance(result, dict):
+                    features[feature_name] = ColorPalette(**result)
+                elif feature == FeatureType.TEXT and isinstance(result, dict):
+                    features[feature_name] = TextFeatures(**result)
+                elif feature == FeatureType.FONTS and isinstance(result, dict):
+                    features[feature_name] = FontFeatures(**result)
                 elif isinstance(result, dict):
-                    if feature == FeatureType.COLORS:
-                        features[feature.value] = ColorPalette(**result)
-                    elif feature == FeatureType.TEXT:
-                        features[feature.value] = TextFeatures(**result)
-                    elif feature == FeatureType.FONTS:
-                        features[feature.value] = FontFeatures(**result)
+                    # For any other dictionary results, include as-is
+                    features[feature_name] = result
                 else:
-                    raise ValueError(f"Unexpected result type: {type(result).__name__}")
-                features_processed += 1
+                    # For non-dict results, include as-is
+                    features[feature_name] = result
+                    
+                logger.debug(f"[{request_id}] Successfully processed {feature_name} feature")
+                
             except Exception as e:
-                logger.error(f"Error processing {feature.value} result: {str(e)}")
-                status = 'partial' if status != 'failure' else 'failure'
-                errors[feature.value] = FeatureError(
-                    code=type(e).__name__,
-                    message=f"Error processing {feature.value} result: {str(e)}",
-                    severity='error'
+                error_msg = f"Failed to process {feature_name} result: {str(e)}"
+                logger.error(f"[{request_id}] {error_msg}", exc_info=e)
+                errors[feature_name] = FeatureError(
+                    code="PROCESSING_ERROR",
+                    message=error_msg,
+                    severity="error",
                 )
-                features_failed += 1
     
-    # Create the response model
+    # Calculate overall status
+    total_features = len(features_requested)
+    failed_features = len(errors)
+    successful_features = len(features)
+    
+    if failed_features == 0:
+        status = "success"
+    elif successful_features == 0:
+        status = "failure"
+    else:
+        status = "partial"
+    
+    # Create metadata
+    metadata = AnalysisMetadata(
+        total_features_requested=total_features,
+        features_processed=successful_features,
+        features_failed=failed_features,
+        processing_time_ms=round(processing_time_ms, 2),  # Round to 2 decimal places
+    )
+    
+    logger.info(
+        f"[{request_id}] Processed {successful_features}/{total_features} features "
+        f"(failed: {failed_features}) in {processing_time_ms:.2f}ms"
+    )
+    
+    # Ensure features is always a dictionary, never None
+    if not features:
+        features = {}
+        
     return UnifiedAnalysisResponse(
         status=status,
         request_id=request_id,
         features=features,
-        errors=errors,
-        metadata=AnalysisMetadata(
-            total_features_requested=len(features_requested),
-            features_processed=features_processed,
-            features_failed=features_failed,
-            processing_time_ms=round(processing_time_ms, 2)
-        )
+        errors=errors or {},
+        metadata=metadata,
     )
 
-async def extract_color_features(image: Any, request_id: str) -> ColorPalette:
+async def extract_color_features(image: np.ndarray, request_id: str) -> ColorPalette:
     """Extract color features from the image.
     
     This function analyzes the input image to identify and extract dominant colors,
@@ -666,9 +758,9 @@ async def extract_color_features(image: Any, request_id: str) -> ColorPalette:
         image: Input image as a numpy array in BGR format. Should be preprocessed
             and validated before being passed to this function.
         request_id: Unique identifier for the request, used for logging.
-        
+            
     Returns:
-        ColorPalette: An object containing the extracted color information:
+        An object containing the extracted color information:
             - primary: The most dominant color in the image (hex code)
             - background: The detected background color (hex code)
             - accent: List of up to 5 accent colors (hex codes)
@@ -707,7 +799,7 @@ async def extract_color_features(image: Any, request_id: str) -> ColorPalette:
         # Return default ColorPalette on error
         return ColorPalette()
 
-async def extract_text_features(image: Any, request_id: str) -> TextFeaturesModel:
+async def extract_text_features(image: np.ndarray, request_id: str) -> TextFeatures:
     """Extract text features from the image using OCR.
     
     This function performs Optical Character Recognition (OCR) on the input image
@@ -720,7 +812,7 @@ async def extract_text_features(image: Any, request_id: str) -> TextFeaturesMode
         request_id: Unique identifier for the request, used for logging.
         
     Returns:
-        TextFeatures: An object containing:
+        An object containing:
             - lines: List of extracted text strings, one per line
             - details: List of text detection details including bounding boxes
             - metadata: Additional information about the extraction process
@@ -773,7 +865,7 @@ async def extract_text_features(image: Any, request_id: str) -> TextFeaturesMode
             text_result.metadata['processing_time'] = 0.0
         
         # Create TextFeatures instance from the result
-        result = TextFeaturesModel(
+        result = TextFeatures(
             lines=text_result.lines,
             details=text_result.details,
             metadata=text_result.metadata
@@ -786,7 +878,7 @@ async def extract_text_features(image: Any, request_id: str) -> TextFeaturesMode
         logger.error(f"Error extracting text for request {request_id}: {str(e)}", exc_info=True)
         # Return empty TextFeatures with default values on error
         from time import time
-        return TextFeaturesModel(
+        return TextFeatures(
             lines=[],
             details=[],
             metadata={
@@ -798,7 +890,7 @@ async def extract_text_features(image: Any, request_id: str) -> TextFeaturesMode
             }
         )
 
-async def extract_font_features(image: Any, request_id: str) -> Optional[FontFeaturesModel]:
+async def extract_font_features(image: np.ndarray, request_id: str) -> Optional[FontFeatures]:
     """Extract font features from the text in the image.
     
     This function analyzes the typography of text present in the image to identify
@@ -811,9 +903,9 @@ async def extract_font_features(image: Any, request_id: str) -> Optional[FontFea
         request_id: Unique identifier for the request, used for logging.
         
     Returns:
-        Optional[FontFeatures]: An object containing font information if detection
-            is successful, or None if no text is detected or if the fonts cannot
-            be reliably identified. The object includes:
+        An object containing font information if detection is successful, or None
+        if no text is detected or if the fonts cannot be reliably identified.
+        The object includes:
             - font_family: Detected font family name
             - font_style: Font style (e.g., 'regular', 'bold', 'italic')
             - font_size: Approximate font size in points
@@ -842,7 +934,7 @@ async def extract_font_features(image: Any, request_id: str) -> Optional[FontFea
         
         if font_features is None:
             logger.warning(f"No font detected in image for request {request_id}")
-            return FontFeaturesModel(
+            return FontFeatures(
                 font_family='sans-serif',
                 font_size=12.0,
                 font_style='normal',

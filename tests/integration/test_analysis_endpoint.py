@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Tuple
 from fastapi.testclient import TestClient
 from difflib import SequenceMatcher
+from app.routers.analyze import UnifiedAnalysisResponse
 
 from app.main import app
 from tests.constants import (
@@ -84,7 +85,7 @@ def compare_colors(color1: str, color2: str, threshold: int = 50) -> bool:
 
 
 class TestUnifiedAnalysisEndpoint:
-    """Integration tests for the unified analysis endpoint."""
+    """Integration tests for the analysis endpoint."""
     
     @pytest.fixture(autouse=True)
     def setup_method(self):
@@ -406,7 +407,6 @@ class TestUnifiedAnalysisEndpoint:
         
         # Parse and validate response against the model
         try:
-            from app.routers.unified_analysis import UnifiedAnalysisResponse
             response_json = response.json()
             print("\nResponse JSON:", json.dumps(response_json, indent=2))  # Debug log
             result = UnifiedAnalysisResponse(**response_json)

@@ -234,28 +234,29 @@ class TestImageProcessor:
         """Test automatic image processing with large PIL image"""
         # Process and validate image
         start_time = time.time()
-        processed_bytes = ImageProcessor.auto_process_image(
+        processed_image = ImageProcessor.auto_process_image(
             large_pil_image,
-            max_dimensions['width'],
-            max_dimensions['height']
+            max_width=max_dimensions['width'],
+            max_height=max_dimensions['height']
         )
         elapsed_time = time.time() - start_time
         
         # Validate response structure
-        result = {"image_bytes": processed_bytes}
+        result = {"image": processed_image}
         is_valid, error_msg = validate_response_structure(
             result,
-            expected_keys=["image_bytes"],
-            value_types={"image_bytes": bytes},
+            expected_keys=["image"],
+            value_types={"image": np.ndarray},
             context="image_processing"
         )
         assert is_valid, error_msg
-        assert len(processed_bytes) > 0
+        assert isinstance(processed_image, np.ndarray), "Should return numpy array"
+        assert processed_image.size > 0, "Processed image should not be empty"
         
-        # Verify dimensions
-        img = Image.open(io.BytesIO(processed_bytes))
-        assert img.width <= max_dimensions['width']
-        assert img.height <= max_dimensions['height']
+        # Check dimensions are within bounds
+        height, width = processed_image.shape[:2]
+        assert width <= max_dimensions['width'], f"Width {width} exceeds max {max_dimensions['width']}"
+        assert height <= max_dimensions['height'], f"Height {height} exceeds max {max_dimensions['height']}"
         
         # Validate processing time
         is_valid, error_msg = validate_processing_time(
@@ -272,28 +273,29 @@ class TestImageProcessor:
         """Test automatic image processing with large OpenCV image"""
         # Process and validate image
         start_time = time.time()
-        processed_bytes = ImageProcessor.auto_process_image(
+        processed_image = ImageProcessor.auto_process_image(
             large_cv2_image,
-            max_dimensions['width'],
-            max_dimensions['height']
+            max_width=max_dimensions['width'],
+            max_height=max_dimensions['height']
         )
         elapsed_time = time.time() - start_time
         
         # Validate response structure
-        result = {"image_bytes": processed_bytes}
+        result = {"image": processed_image}
         is_valid, error_msg = validate_response_structure(
             result,
-            expected_keys=["image_bytes"],
-            value_types={"image_bytes": bytes},
+            expected_keys=["image"],
+            value_types={"image": np.ndarray},
             context="image_processing"
         )
         assert is_valid, error_msg
-        assert len(processed_bytes) > 0
+        assert isinstance(processed_image, np.ndarray), "Should return numpy array"
+        assert processed_image.size > 0, "Processed image should not be empty"
         
-        # Verify dimensions
-        img = Image.open(io.BytesIO(processed_bytes))
-        assert img.width <= max_dimensions['width']
-        assert img.height <= max_dimensions['height']
+        # Check dimensions are within bounds
+        height, width = processed_image.shape[:2]
+        assert width <= max_dimensions['width'], f"Width {width} exceeds max {max_dimensions['width']}"
+        assert height <= max_dimensions['height'], f"Height {height} exceeds max {max_dimensions['height']}"
         
         # Validate processing time
         is_valid, error_msg = validate_processing_time(

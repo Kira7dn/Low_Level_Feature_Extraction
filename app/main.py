@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-from app.routers import colors, text, shapes, shadows, fonts, unified_analysis
+from app.routers import analyze
 from app.core.config import settings
 
 def create_app():
@@ -41,12 +41,13 @@ def create_app():
         )
 
     # Register routers
-    app.include_router(colors.router, prefix="/api/v1", tags=["colors"])
-    app.include_router(text.router, prefix="/api/v1", tags=["text"])
-    app.include_router(shapes.router, prefix="/api/v1", tags=["shapes"])
-    app.include_router(shadows.router, prefix="/api/v1", tags=["shadows"])
-    app.include_router(fonts.router, prefix="/api/v1", tags=["fonts"])
-    app.include_router(unified_analysis.router, prefix="/api/v1", tags=["unified_analysis"])
+    app.include_router(analyze.router, prefix="/api/v1", tags=["analyze"])
+    
+    # Debug: Print all routes
+    print("\n=== Registered Routes ===")
+    for route in app.routes:
+        if hasattr(route, 'methods'):
+            print(f"{', '.join(route.methods)} {route.path}")
 
     @app.get("/", response_class=HTMLResponse)
     async def root():
@@ -88,7 +89,7 @@ def create_app():
                 </ul>
                 <div class="links">
                     <a href="/docs">API Documentation</a>
-                    <a href="/api/v1/unified-analysis">Try Unified Analysis</a>
+                    <a href="/api/v1/analyze">Try Analysis</a>
                 </div>
                 <p><small>Version: 1.0.0</small></p>
             </body>

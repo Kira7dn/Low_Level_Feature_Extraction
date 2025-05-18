@@ -196,52 +196,56 @@ class ImageProcessor:
         return ImageProcessor.compress_image(resized_image)
     
     @staticmethod
-    def auto_process_image(image, 
-                            max_width: int = 1920, 
-                            max_height: int = 1080, 
-                            target_format: str = 'webp', 
-                            quality: int = 85) -> bytes:
+    @staticmethod
+    @PerformanceMonitor.track_performance()
+    def auto_process_image(
+        image_bytes: bytes,
+        max_width: int = 1920,
+        max_height: int = 1080,
+        quality: int = 85
+    ) -> np.ndarray:
         """
-        Automatically process an image with resizing, compression, and format conversion
+        Process image from bytes to a standardized numpy array in BGR format.
         
         Args:
-            image: Input image (PIL Image, numpy array, or bytes)
-            max_width (int, optional): Maximum width. Defaults to 1920.
-            max_height (int, optional): Maximum height. Defaults to 1080.
-            target_format (str, optional): Target image format. Defaults to 'webp'.
-            quality (int, optional): Compression quality. Defaults to 85.
-        
+            image_bytes: Raw image data as bytes
+            max_width: Maximum width for resizing
+            max_height: Maximum height for resizing
+            quality: Quality for compression (if needed)
+            
         Returns:
-            bytes: Optimized image
+            np.ndarray: Processed image in BGR format
+            
+        Raises:
+            ValueError: If image processing fails
         """
-        start_time = time.time()
         try:
-            # If image is bytes, first convert to appropriate image type
-            if isinstance(image, bytes):
-                try:
-                    # Try loading as PIL Image first
-                    image = ImageProcessor.load_image(image)
-                except Exception:
-                    # If not PIL, try loading as CV2 image
-                    image = ImageProcessor.load_cv2_image(image)
-            
-            # Resize image
-            resized_image = ImageProcessor.resize_image(
-                image, 
-                max_width=max_width, 
-                max_height=max_height
+            # 1. Load image from bytes
+            image = cv2.imdecode(
+                np.frombuffer(image_bytes, np.uint8),
+                cv2.IMREAD_COLOR
             )
             
-            # Convert and compress image
-            return ImageProcessor.convert_format(
-                resized_image, 
-                target_format=target_format
+            if image is None:
+                raise ValueError("Failed to decode image")
+                
+            # 2. Convert to RGB (PIL works with RGB)
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            pil_image = Image.fromarray(image_rgb)
+            
+            # 3. Resize maintaining aspect ratio
+            pil_image.thumbnail(
+                (max_width, max_height),
+                Image.Resampling.LANCZOS
             )
-        
-        finally:
-            end_time = time.time()
-            processing_time = end_time - start_time
-            logger.info(f"Auto image processing took {processing_time:.4f} seconds")
+            
+            # 4. Convert back to numpy array in BGR format
+            resized_image = np.array(pil_image)
+            return cv2.cvtColor(resized_image, cv2.COLOR_RGB2BGR)
+            
+        except Exception as e:
+            logger.error(f"Image processing failed: {str(e)}")
+            raise ValueError(f"Image processing error: {str(e)}")
 
     @staticmethod
     def convert_format(image, target_format: str = 'png') -> bytes:

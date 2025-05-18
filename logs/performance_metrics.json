@@ -1,56 +1,128 @@
 [
   {
     "method": "sample_method",
-    "execution_time": 0.10041040001669899,
+    "execution_time": 0.10050840000621974,
     "memory_usage": 0,
-    "timestamp": 1747548365.4662704
+    "timestamp": 1747578266.5480363
   },
   {
     "method": "sample_method",
-    "execution_time": 0.20029810001142323,
+    "execution_time": 0.2005174999940209,
     "memory_usage": 0,
-    "timestamp": 1747548365.667574
+    "timestamp": 1747578266.7496145
   },
   {
     "method": "sample_method",
-    "execution_time": 0.30047620000550523,
+    "execution_time": 0.30016230000182986,
     "memory_usage": 0,
-    "timestamp": 1747548365.9773571
+    "timestamp": 1747578267.0596151
   },
   {
     "method": "load_cv2_image",
-    "execution_time": 0.0005025999853387475,
+    "execution_time": 0.00045289998524822295,
     "memory_usage": 0,
-    "timestamp": 1747548365.9953563
+    "timestamp": 1747578267.0784793
   },
   {
     "method": "load_cv2_image",
-    "execution_time": 0.00046350000775419176,
+    "execution_time": 0.00039739999920129776,
     "memory_usage": 0,
-    "timestamp": 1747548366.0079257
+    "timestamp": 1747578267.088914
   },
   {
-    "method": "load_cv2_image",
-    "execution_time": 1.9942806819999532,
+    "method": "auto_process_image",
+    "execution_time": 0.04151859998819418,
     "memory_usage": 0,
-    "timestamp": 1747551534.6987147
+    "timestamp": 1747578960.2883818
   },
   {
-    "method": "load_cv2_image",
-    "execution_time": 0.04035320002003573,
+    "method": "auto_process_image",
+    "execution_time": 0.009221699991030619,
     "memory_usage": 0,
-    "timestamp": 1747552231.9340062
+    "timestamp": 1747578962.8904
   },
   {
-    "method": "load_cv2_image",
-    "execution_time": 0.048351299978094175,
+    "method": "auto_process_image",
+    "execution_time": 0.00936520000686869,
     "memory_usage": 0,
-    "timestamp": 1747552525.8349438
+    "timestamp": 1747578969.4281456
   },
   {
-    "method": "load_cv2_image",
-    "execution_time": 0.03197879999061115,
+    "method": "auto_process_image",
+    "execution_time": 0.013916500000050291,
     "memory_usage": 0,
-    "timestamp": 1747552591.2452934
+    "timestamp": 1747578987.7865827
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.008999499987112358,
+    "memory_usage": 0,
+    "timestamp": 1747578989.9660435
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.009260299993911758,
+    "memory_usage": 0,
+    "timestamp": 1747578991.5241272
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.03184459998738021,
+    "memory_usage": 0,
+    "timestamp": 1747579114.3661306
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.013763800001470372,
+    "memory_usage": 0,
+    "timestamp": 1747579144.95809
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.0261770999932196,
+    "memory_usage": 0,
+    "timestamp": 1747579218.8510437
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.014083499991102144,
+    "memory_usage": 0,
+    "timestamp": 1747579288.6708803
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.014203400001861155,
+    "memory_usage": 0,
+    "timestamp": 1747579317.3316457
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.014265100006014109,
+    "memory_usage": 0,
+    "timestamp": 1747579336.842655
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.014193499984685332,
+    "memory_usage": 0,
+    "timestamp": 1747579417.4219449
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.03307430000859313,
+    "memory_usage": 0,
+    "timestamp": 1747579557.5348754
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.20405830000527203,
+    "memory_usage": 0,
+    "timestamp": 1747579585.4081054
+  },
+  {
+    "method": "auto_process_image",
+    "execution_time": 0.06000299999141134,
+    "memory_usage": 0,
+    "timestamp": 1747579613.6224756
   }
 ]

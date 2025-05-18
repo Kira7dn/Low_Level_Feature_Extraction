@@ -3,15 +3,28 @@ import os
 import json
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 from app.main import app
 
+def print_routes(app: FastAPI):
+    """Print all registered routes for debugging."""
+    print("\n=== Registered Routes ===")
+    for route in app.routes:
+        if hasattr(route, 'methods'):
+            print(f"{', '.join(route.methods)} {route.path}")
+
+# Print routes for debugging
+print_routes(app)
+
 # Get the absolute path to the test image
-TEST_IMAGE_PATH = os.path.join(
+TEST_IMAGE_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "test_data",
     "test_suite",
     "simple_text.png"
-)
+))
+print(f"Using test image at: {TEST_IMAGE_PATH}")
+assert os.path.exists(TEST_IMAGE_PATH), f"Test image not found at {TEST_IMAGE_PATH}"
 
 client = TestClient(app)
 
@@ -47,9 +60,14 @@ def test_image_upload():
         'features': ['colors', 'text', 'fonts']
     }
     
-    print("\nSending request to /api/v1/analyze")
-    print(f"Files: {list(files.keys())}")
-    print(f"Form data: {form_data}")
+    print("\n=== REQUEST DETAILS ===")
+    print(f"URL: /api/v1/analyze")
+    print("Headers:")
+    print("  Content-Type: multipart/form-data")
+    print("Files:")
+    for name, (filename, _, content_type) in files.items():
+        print(f"  {name}: {filename} ({content_type}), {len(image_data)} bytes")
+    print("Form data:", form_data)
     
     try:
         # Make the request
@@ -66,6 +84,21 @@ def test_image_upload():
         for k, v in response.headers.items():
             print(f"  {k}: {v}")
             
+        # Print raw response content for debugging
+        print("\nRaw response content:")
+        print(response.text[:2000])  # Print first 2000 chars to avoid huge outputs
+        
+        # Print request that was made
+        if hasattr(response, 'request'):
+            print("\n=== REQUEST MADE ===")
+            print(f"URL: {response.request.method} {response.request.url}")
+            print("Headers:")
+            for k, v in response.request.headers.items():
+                print(f"  {k}: {v}")
+            if hasattr(response.request, 'body') and response.request.body:
+                print("Request body (first 1000 bytes):")
+                print(str(response.request.body)[:1000])
+            
         # Try to parse JSON response
         try:
             json_response = response.json()
@@ -73,6 +106,10 @@ def test_image_upload():
             print(json.dumps(json_response, indent=2))
             
             # Basic assertions
+            if response.status_code != 200:
+                print(f"\n!!! Request failed with status {response.status_code}")
+                if 'detail' in json_response:
+                    print(f"Error detail: {json_response['detail']}")
             assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
             assert 'features' in json_response, "Response missing 'features' key"
             
