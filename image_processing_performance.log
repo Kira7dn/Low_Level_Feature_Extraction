@@ -56,3 +56,69 @@ app.utils.error_handler.ValidationException: Unable to identify image
 2025-05-17 22:55:25,034 - app.routers.unified_analysis - INFO - Extracted colors: {'primary': '#181818', 'background': '#949494', 'accent': ['#f4f4f4', '#cacaca', '#5a5a5a']}
 2025-05-17 22:55:25,034 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#181818', 'background': '#949494', 'accent': ['#f4f4f4', '#cacaca', '#5a5a5a']}
 2025-05-17 22:55:25,257 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/analyze "HTTP/1.1 200 OK"
+2025-05-18 06:58:52,690 - app.routers.unified_analysis - INFO - Starting image analysis request d79c0f88-09be-4ad9-b363-03e2ce250500
+2025-05-18 06:58:52,699 - app.routers.unified_analysis - INFO - Processing uploaded file: 133886737977102650.jpg
+2025-05-18 06:58:52,702 - app.routers.unified_analysis - INFO - Read 2058280 bytes, content-type: image/jpeg
+2025-05-18 06:58:54,696 - app.services.image_processor - INFO - Image loading took 1.9901 seconds
+2025-05-18 06:58:54,696 - app.services.image_processor - INFO - Image bytes length: 2058280
+2025-05-18 06:58:54,697 - app.services.image_processor - INFO - Image loading took 1.9935 seconds
+2025-05-18 06:58:54,698 - root - INFO - Performance: load_cv2_image Execution Time: 1.9943 seconds, Memory Usage: 0 bytes
+2025-05-18 06:58:54,861 - app.routers.unified_analysis - INFO - Processed image - shape: (1125, 2000, 3), dtype: uint8
+2025-05-18 06:58:54,866 - app.routers.unified_analysis - INFO - Starting color extraction for request d79c0f88-09be-4ad9-b363-03e2ce250500
+2025-05-18 06:58:59,106 - app.routers.unified_analysis - INFO - Extracted colors: primary='#656835' background='#FFFFFF' accent=['#2c2e1e', '#94936b', '#cbcac5'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 06:58:59,110 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#656835', 'background': '#FFFFFF', 'accent': ['#2c2e1e', '#94936b', '#cbcac5'], 'metadata': {}}
+2025-05-18 14:04:39,906 - app.routers.unified_analysis - INFO - Starting image analysis request e9ca0755-6f29-4e8d-90b2-46d6303f072e
+2025-05-18 14:06:16,985 - app.routers.unified_analysis - INFO - Starting image analysis request ae875188-00c9-46ed-81eb-6436c6d186cf
+2025-05-18 14:08:20,152 - app.routers.unified_analysis - INFO - Starting image analysis request 7563eff4-2951-42ff-8b3a-110e19f9e6b5
+2025-05-18 14:10:31,887 - app.routers.unified_analysis - INFO - Starting image analysis request e059f4d8-ef63-4daa-8c1a-63ea01ca9673
+2025-05-18 14:10:31,888 - app.routers.unified_analysis - INFO - Processing uploaded file: test_image.jpg
+2025-05-18 14:10:31,890 - app.routers.unified_analysis - INFO - Read 88574 bytes, content-type: image/jpeg
+2025-05-18 14:10:31,931 - app.services.image_processor - INFO - Image loading took 0.0382 seconds
+2025-05-18 14:10:31,931 - app.services.image_processor - INFO - Image bytes length: 88574
+2025-05-18 14:10:31,932 - app.services.image_processor - INFO - Image loading took 0.0398 seconds
+2025-05-18 14:10:31,933 - root - INFO - Performance: load_cv2_image Execution Time: 0.0404 seconds, Memory Usage: 0 bytes
+2025-05-18 14:10:31,948 - app.routers.unified_analysis - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 14:10:31,951 - app.routers.unified_analysis - INFO - Starting color extraction for request e059f4d8-ef63-4daa-8c1a-63ea01ca9673
+2025-05-18 14:10:33,069 - app.routers.unified_analysis - INFO - Extracted colors: primary='#c67c74' background='#FFFFFF' accent=['#e6af9a', '#7b554d', '#3c2020'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 14:10:33,072 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#c67c74', 'background': '#FFFFFF', 'accent': ['#e6af9a', '#7b554d', '#3c2020'], 'metadata': {}}
+2025-05-18 14:10:33,073 - app.routers.unified_analysis - INFO - Starting text extraction for request e059f4d8-ef63-4daa-8c1a-63ea01ca9673
+2025-05-18 14:10:33,554 - app.routers.unified_analysis - INFO - Extracted text: lines=['te Mie. ; Ss, -r'] details=[{'text': 'te Mie. ; Ss, -r', 'original': 'te Mie. ; (Ss, -r', 'length': 16}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747552233.55471, 'processing_time': 0.4797513484954834}
+2025-05-18 14:10:33,555 - app.routers.unified_analysis - INFO - Formatted text features: {'lines': ['te Mie. ; Ss, -r'], 'details': [{'text': 'te Mie. ; Ss, -r', 'original': 'te Mie. ; (Ss, -r', 'length': 16}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747552233.55471, 'processing_time': 0.4797513484954834}}
+2025-05-18 14:11:38,870 - app.routers.unified_analysis - INFO - Starting image analysis request 7ce02f95-ff06-4641-9284-c03b7c2518d9
+2025-05-18 14:12:12,633 - app.routers.unified_analysis - INFO - Starting image analysis request f27618d2-51ce-48c3-afe7-17f3d4769de3
+2025-05-18 14:12:22,709 - app.routers.unified_analysis - INFO - Starting image analysis request 1d19c802-1d63-46e4-9161-dd41a02af800
+2025-05-18 14:13:51,056 - app.routers.unified_analysis - INFO - Starting image analysis request 5f1d8431-2618-4874-ac35-3a40bb734f1f
+2025-05-18 14:14:22,380 - app.routers.unified_analysis - INFO - Starting image analysis request d271390d-99e3-46fd-a278-752f19b62ef6
+2025-05-18 14:14:22,384 - app.routers.unified_analysis - INFO - Downloading image from URL: https://i.ytimg.com/vi/MK8IzXrALrQ/hq720.jpg
+2025-05-18 14:14:22,385 - app.routers.unified_analysis - ERROR - Failed to process URL: __init__() needs keyword-only argument scheme
+2025-05-18 14:15:02,626 - app.routers.unified_analysis - INFO - Starting image analysis request c0e2db37-eaa4-44fc-b6b8-2d6a8f5be0ba
+2025-05-18 14:15:02,639 - app.routers.unified_analysis - INFO - Downloading image from URL: https://i.ytimg.com/vi/MK8IzXrALrQ/hq720.jpg
+2025-05-18 14:15:02,640 - app.routers.unified_analysis - ERROR - Failed to process URL: __init__() needs keyword-only argument scheme
+2025-05-18 14:15:24,959 - app.routers.unified_analysis - INFO - Starting image analysis request 745813cd-e6c8-465d-9467-76209e34b471
+2025-05-18 14:15:24,970 - app.routers.unified_analysis - INFO - Downloading image from URL: https://i.ytimg.com/vi/MK8IzXrALrQ/hq720.jpg
+2025-05-18 14:15:25,783 - app.routers.unified_analysis - INFO - Downloaded 88574 bytes, content-type: image/jpeg
+2025-05-18 14:15:25,830 - app.services.image_processor - INFO - Image loading took 0.0472 seconds
+2025-05-18 14:15:25,831 - app.services.image_processor - INFO - Image bytes length: 88574
+2025-05-18 14:15:25,832 - app.services.image_processor - INFO - Image loading took 0.0485 seconds
+2025-05-18 14:15:25,832 - root - INFO - Performance: load_cv2_image Execution Time: 0.0484 seconds, Memory Usage: 0 bytes
+2025-05-18 14:15:25,838 - app.routers.unified_analysis - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 14:15:25,840 - app.routers.unified_analysis - INFO - Starting color extraction for request 745813cd-e6c8-465d-9467-76209e34b471
+2025-05-18 14:15:27,170 - app.routers.unified_analysis - INFO - Extracted colors: primary='#c67b74' background='#FFFFFF' accent=['#e6af9a', '#7a544c', '#3b1f20'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 14:15:27,171 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#c67b74', 'background': '#FFFFFF', 'accent': ['#e6af9a', '#7a544c', '#3b1f20'], 'metadata': {}}
+2025-05-18 14:15:27,171 - app.routers.unified_analysis - INFO - Starting text extraction for request 745813cd-e6c8-465d-9467-76209e34b471
+2025-05-18 14:15:27,656 - app.routers.unified_analysis - INFO - Extracted text: lines=['te Mie. ; Ss, -r'] details=[{'text': 'te Mie. ; Ss, -r', 'original': 'te Mie. ; (Ss, -r', 'length': 16}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747552527.6567543, 'processing_time': 0.4838075637817383}
+2025-05-18 14:15:27,657 - app.routers.unified_analysis - INFO - Formatted text features: {'lines': ['te Mie. ; Ss, -r'], 'details': [{'text': 'te Mie. ; Ss, -r', 'original': 'te Mie. ; (Ss, -r', 'length': 16}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747552527.6567543, 'processing_time': 0.4838075637817383}}
+2025-05-18 14:16:31,190 - app.routers.unified_analysis - INFO - Starting image analysis request 1f47ec88-a426-4f7d-9acc-8f89bd588a5f
+2025-05-18 14:16:31,209 - app.routers.unified_analysis - INFO - Processing uploaded file: documentation.png
+2025-05-18 14:16:31,210 - app.routers.unified_analysis - INFO - Read 17121 bytes, content-type: image/png
+2025-05-18 14:16:31,242 - app.services.image_processor - INFO - Image loading took 0.0304 seconds
+2025-05-18 14:16:31,243 - app.services.image_processor - INFO - Image bytes length: 17121
+2025-05-18 14:16:31,243 - app.services.image_processor - INFO - Image loading took 0.0314 seconds
+2025-05-18 14:16:31,244 - root - INFO - Performance: load_cv2_image Execution Time: 0.0320 seconds, Memory Usage: 0 bytes
+2025-05-18 14:16:31,269 - app.routers.unified_analysis - INFO - Processed image - shape: (168, 577, 3), dtype: uint8
+2025-05-18 14:16:31,272 - app.routers.unified_analysis - INFO - Starting color extraction for request 1f47ec88-a426-4f7d-9acc-8f89bd588a5f
+2025-05-18 14:16:31,466 - app.routers.unified_analysis - INFO - Extracted colors: primary='#dbeddc' background='#000000' accent=['#3d8741', '#639f66', '#8ab88d'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 14:16:31,470 - app.routers.unified_analysis - INFO - Formatted color features: {'primary': '#dbeddc', 'background': '#000000', 'accent': ['#3d8741', '#639f66', '#8ab88d'], 'metadata': {}}
+2025-05-18 14:16:31,470 - app.routers.unified_analysis - INFO - Starting text extraction for request 1f47ec88-a426-4f7d-9acc-8f89bd588a5f
+2025-05-18 14:16:32,298 - app.routers.unified_analysis - INFO - Extracted text: lines=['Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library e.g. Next, React Copy the latest docs and code for any library -'] details=[{'text': 'Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library e.g. Next, React Copy the latest docs and code for any library -', 'original': 'Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library (e.g. Next, React) Copy the latest docs and code for any library -', 'length': 178}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747552592.2984836, 'processing_time': 0.8263351917266846}
+2025-05-18 14:16:32,300 - app.routers.unified_analysis - INFO - Formatted text features: {'lines': ['Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library e.g. Next, React Copy the latest docs and code for any library -'], 'details': [{'text': 'Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library e.g. Next, React Copy the latest docs and code for any library -', 'original': 'Up-to-date documentation for LLMs and Al code editors. paste into Cursor, Claude, or other LLMs. Search a library (e.g. Next, React) Copy the latest docs and code for any library -', 'length': 178}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747552592.2984836, 'processing_time': 0.8263351917266846}}

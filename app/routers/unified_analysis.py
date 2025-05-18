@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, Depends, Query
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, Depends, Query, Request
 from typing import Dict, List, Optional, Any, Union, Literal
 from enum import Enum
 import asyncio
@@ -163,7 +163,7 @@ class UnifiedAnalysisResponse(BaseModel):
 
 # ===== Helper Functions =====
 
-async def download_image(url: HttpUrl, max_size: int = 10 * 1024 * 1024, timeout: int = 30) -> tuple[bytes, str]:
+async def download_image(url: Union[str, HttpUrl], max_size: int = 10 * 1024 * 1024, timeout: int = 30) -> tuple[bytes, str]:
     """
     Download an image from a URL with size and timeout limits.
     
@@ -181,6 +181,14 @@ async def download_image(url: HttpUrl, max_size: int = 10 * 1024 * 1024, timeout
     timeout = aiohttp.ClientTimeout(total=timeout)
     
     try:
+        # Convert string URL to HttpUrl if needed
+        if isinstance(url, str):
+            from pydantic import HttpUrl
+            try:
+                url = HttpUrl(url)
+            except Exception as e:
+                raise ValueError(f"Invalid URL format: {str(e)}")
+                
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(str(url)) as response:
                 if response.status != 200:
@@ -286,7 +294,7 @@ class FeatureType(str, Enum):
     }
 )
 async def analyze_image(
-    source: ImageSource = Depends(),
+    request: Request,
     preprocessing: PreprocessingMode = Form(
         PreprocessingMode.AUTO,
         description="""
@@ -306,7 +314,9 @@ async def analyze_image(
         - 'text': Extract text content and metadata using OCR
         - 'fonts': Identify font properties and styles
         """
-    )
+    ),
+    file: Optional[UploadFile] = File(None),
+    url: Optional[Any] = Form(None)
 ) -> UnifiedAnalysisResponse:
     """Analyze an image and extract specified or all available features.
     
@@ -368,36 +378,46 @@ async def analyze_image(
     logger.info(f"Starting image analysis request {request_id}")
 
     try:
+        # Debug: Log request form data
+        form_data = await request.form()
+        logger.debug(f"Received form data: {dict(form_data)}")
+        logger.debug(f"File: {file}")
+        logger.debug(f"URL: {url}")
+        
         # Validate that exactly one source is provided
-        if not source.file and not source.url:
+        if not file and not url:
             raise HTTPException(
                 status_code=422,
                 detail="Either 'file' or 'url' must be provided"
             )
         
-        if source.file and source.url:
+        if file and url:
             raise HTTPException(
                 status_code=422,
                 detail="Only one of 'file' or 'url' should be provided"
             )
 
         # Get image bytes from the appropriate source
-        if source.url:
-            logger.info(f"Downloading image from URL: {source.url}")
+        if url:
+            logger.info(f"Downloading image from URL: {url}")
             try:
+                # Use the URL directly (it will be validated by download_image)
                 image_bytes, content_type = await download_image(
-                    source.url,
+                    url,
                     max_size=settings.MAX_IMAGE_SIZE_BYTES,
                     timeout=settings.IMAGE_DOWNLOAD_TIMEOUT
                 )
                 logger.info(f"Downloaded {len(image_bytes)} bytes, content-type: {content_type}")
-            except HTTPException as he:
-                logger.error(f"Failed to download image: {he.detail}")
-                raise
+            except Exception as e:
+                logger.error(f"Failed to process URL: {str(e)}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid URL or failed to download image: {str(e)}"
+                )
         else:
-            logger.info(f"Processing uploaded file: {source.file.filename}")
-            image_bytes = await source.file.read()
-            content_type = source.file.content_type
+            logger.info(f"Processing uploaded file: {file.filename}")
+            image_bytes = await file.read()
+            content_type = file.content_type
             logger.info(f"Read {len(image_bytes)} bytes, content-type: {content_type}")
             
         # Validate image content type - using 400 instead of 415 to match test expectations

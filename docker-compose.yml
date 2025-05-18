@@ -7,32 +7,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: low_level_feature_extraction
-    restart: unless-stopped
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
       - TESSERACT_PATH=/usr/bin/tesseract
       - OPENCV_IO_MAX_IMAGE_PIXELS=18446744073709551615
-      - MAX_FILE_SIZE=16777216  # 16MB limit
-      - LOG_LEVEL=INFO
+      - MAX_FILE_SIZE=16777216  # 16MB limit to match render.yaml
     ports:
       - "8000:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          memory: 1G
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"

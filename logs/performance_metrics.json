@@ -28,5 +28,29 @@
     "execution_time": 0.00046350000775419176,
     "memory_usage": 0,
     "timestamp": 1747548366.0079257
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 1.9942806819999532,
+    "memory_usage": 0,
+    "timestamp": 1747551534.6987147
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.04035320002003573,
+    "memory_usage": 0,
+    "timestamp": 1747552231.9340062
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.048351299978094175,
+    "memory_usage": 0,
+    "timestamp": 1747552525.8349438
+  },
+  {
+    "method": "load_cv2_image",
+    "execution_time": 0.03197879999061115,
+    "memory_usage": 0,
+    "timestamp": 1747552591.2452934
   }
 ]
