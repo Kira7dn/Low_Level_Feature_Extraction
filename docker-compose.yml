@@ -15,4 +15,22 @@ services:
       - OPENCV_IO_MAX_IMAGE_PIXELS=18446744073709551615
       - MAX_FILE_SIZE=16777216  # 16MB limit to match render.yaml
     ports:
-      - "8000:8000"
+      - "8005:8005"
+    restart: unless-stopped
+    depends_on:
+      - ngrok
+    networks:
+      - feature_network
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: cont_ngrok
+    command: http n8n:8005 --url=comic-bug-ideally.ngrok-free.app
+    environment:
+      - NGROK_AUTHTOKEN=20SRiXyEOmPZtZUdYs6muKyZEX7_4WBxespUup36hs2WEHRxf
+      - NGROK_REGION=ap # or 'us', 'eu', etc.
+    restart: unless-stopped
+    networks:
+      - feature_network
+networks:
+  feature_network:
+    driver: bridge
