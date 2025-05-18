@@ -1,4 +1,79 @@
-# Low-Level Feature Extraction
+# Low-Level Feature Extraction API
+
+## Features
+
+- **Image Analysis**: Extract colors, text, and fonts from images
+- **Multiple Input Sources**: 
+  - File uploads
+  - Public URLs
+- **Advanced Processing**:
+  - Automatic image preprocessing
+  - Multiple feature extraction
+  - Configurable processing modes
+
+## Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Tesseract OCR (for text extraction)
+- Required Python packages (install via `pip install -r requirements.txt`)
+
+### Installation
+
+1. Clone the repository
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+5. Update the `.env` file with your configuration
+
+## API Endpoints
+
+### Analyze Image
+
+#### Using File Upload
+```bash
+curl -X POST "http://localhost:8000/api/v1/analyze" \
+     -H "accept: application/json" \
+     -F "file=@image.jpg" \
+     -F "preprocessing=auto" \
+     -F "features=colors" \
+     -F "features=text"
+```
+
+#### Using Image URL
+```bash
+curl -X POST "http://localhost:8000/api/v1/analyze" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "url": "https://example.com/image.jpg",
+       "preprocessing": "auto",
+       "features": ["colors", "text"]
+     }'
+```
+
+#### Request Parameters
+
+- `file` (File, optional): Image file to upload (max 10MB)
+- `url` (string, optional): URL of the image to process
+- `preprocessing` (string): Image preprocessing mode
+  - `none`: No preprocessing (fastest, least accurate)
+  - `auto`: Automatic preprocessing (recommended)
+  - `high_quality`: Enhanced preprocessing (slower)
+  - `performance`: Optimized for speed (may reduce accuracy)
+- `features` (array of strings, optional): List of features to extract
+  - `colors`: Extract dominant colors and color scheme
+  - `text`: Extract text content and metadata using OCR
+  - `fonts`: Identify font properties and styles
 
 ## Image Processing Pipeline
 

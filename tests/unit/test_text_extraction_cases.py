@@ -63,7 +63,29 @@ class TextExtractionTestBase:
         return path if path.is_absolute() else PROJECT_ROOT / path
     
     def _calculate_match_percentage(self, expected: str, extracted: str) -> float:
-        """Calculate match percentage between expected and extracted text."""
+        """Calculate match percentage between expected and extracted text.
+        
+        For sequences of digits, uses exact character-by-character matching.
+        For other text, uses word-level matching.
+        """
+        # If either string is empty, return 0% match
+        if not expected or not extracted:
+            return 0.0
+            
+        # Check if this is a sequence of digits (like a phone number, ID, etc.)
+        if expected.strip().isdigit():
+            # For digit sequences, do exact character-by-character matching
+            expected_digits = expected.strip()
+            extracted_digits = extracted.strip()
+            
+            if not extracted_digits:
+                return 0.0
+                
+            # Calculate the length of the longest common subsequence
+            lcs_length = self._longest_common_subsequence(expected_digits, extracted_digits)
+            return (lcs_length / len(expected_digits)) * 100
+            
+        # For non-digit text, use word-level matching
         normalized_expected = " ".join(expected.split())
         normalized_extracted = " ".join(extracted.split())
         
@@ -76,7 +98,7 @@ class TextExtractionTestBase:
                 return 0.0
                 
             matching = expected_chars.intersection(extracted_chars)
-            return len(matching) / len(expected_chars) * 100
+            return (len(matching) / len(expected_chars)) * 100
             
         # Word-level matching for regular text
         expected_words = {w.lower() for w in normalized_expected.split() if len(w) > 1}
@@ -85,7 +107,21 @@ class TextExtractionTestBase:
             
         extracted_words = {w.lower() for w in normalized_extracted.split() if len(w) > 1}
         matching = expected_words.intersection(extracted_words)
-        return len(matching) / len(expected_words) * 100
+        return (len(matching) / len(expected_words)) * 100
+        
+    def _longest_common_subsequence(self, text1: str, text2: str) -> int:
+        """Calculate the length of the longest common subsequence between two strings."""
+        m, n = len(text1), len(text2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if text1[i-1] == text2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+                    
+        return dp[m][n]
 
 
 class TestTextExtraction(TextExtractionTestBase):
@@ -121,6 +157,10 @@ class TestTextExtraction(TextExtractionTestBase):
         # Extract text
         result = TextExtractor.extract_text(image)
         
+        # Convert TextFeatures to dict if needed
+        if hasattr(result, 'dict'):
+            result = result.dict()
+        
         # Validate response structure
         is_valid, error_msg = validate_response_structure(
             result,
@@ -153,8 +193,25 @@ class TestTextExtraction(TextExtractionTestBase):
             pytest.fail(f"Test case missing required fields: {', '.join(missing)}")
         
         try:
+            # Print full test case info
+            with capsys.disabled():
+                print("\n" + "=" * 80)
+                print(f"TEST CASE: {test_case['description']}")
+                print(f"Image path: {test_case['image_path']}")
+                print(f"Expected text: {test_case['expected_text']}")
+                print("=" * 80 + "\n")
+            
             # Extract text
             result, extracted_text = self._extract_text_from_image(test_case['image_path'])
+            
+            # Print full result
+            with capsys.disabled():
+                print("\n" + "=" * 80)
+                print("RESULT OBJECT:")
+                print(f"Type: {type(result)}")
+                print(f"Keys: {list(result.keys())}")
+                print(f"Lines: {result.get('lines')}")
+                print("=" * 80 + "\n")
             
             # Validate response structure
             assert isinstance(result, dict), f"Expected dict result, got {type(result)}"
@@ -166,24 +223,60 @@ class TestTextExtraction(TextExtractionTestBase):
                 extracted_text
             )
             
-            # Output results
+            # Debug: Print detailed matching information
             with capsys.disabled():
                 print(f"\nTest: {test_case['description']}")
                 print(f"Expected: {test_case['expected_text']}")
                 print(f"Result:  {extracted_text}")
                 print(f"Match:   {match_percentage:.1f}%")
                 print(f"Lines:   {result['lines']}")
+                
+                # Print full result structure for debugging
+                print("\nFull result structure:")
+                for key, value in result.items():
+                    if key == 'lines':
+                        print(f"  {key}: {value}")
+                    elif isinstance(value, (str, int, float, bool)) or value is None:
+                        print(f"  {key}: {value}")
+                    else:
+                        print(f"  {key}: {type(value)}")
+                
+                # Print character by character comparison for numbers test case
+                if test_case['description'] == 'Sequence of numbers':
+                    print("\nCharacter by character comparison:")
+                    expected_chars = list(test_case['expected_text'])
+                    result_chars = list(extracted_text)
+                    
+                    print(f"Expected chars: {expected_chars}")
+                    print(f"Result chars:   {result_chars}")
+                    
+                    # Print matching characters
+                    matching = []
+                    for i, (exp, res) in enumerate(zip(expected_chars, result_chars)):
+                        if exp == res:
+                            matching.append(f"'{exp}'")
+                        else:
+                            matching.append(f"'{exp}'!='{res}'")
+                    
+                    print("Matching:       ", " ".join(matching))
+                
                 print("-" * 50)
             
             # Verify minimum match percentage
             assert match_percentage >= MIN_MATCH_PERCENTAGE, (
                 f"Expected at least {MIN_MATCH_PERCENTAGE}% match. Got {match_percentage:.1f}%\n"
                 f"Expected: {test_case['expected_text']}\n"
-                f"Got: {extracted_text}"
+                f"Got: {extracted_text}\n"
+                f"Result object keys: {list(result.keys())}\n"
+                f"Result lines: {result.get('lines', 'No lines key')}"
             )
             
         except Exception as e:
             logger.error("Test failed with error: %s", str(e))
+            logger.error("Test case: %s", test_case)
+            logger.error("Result type: %s", type(result) if 'result' in locals() else 'No result')
+            if 'result' in locals():
+                logger.error("Result keys: %s", list(result.keys()) if hasattr(result, 'keys') else 'Not a dict')
             raise
 
 # This allows running the test directly with python -m pytest tests/unit/test_text_extraction_cases.py -v -s

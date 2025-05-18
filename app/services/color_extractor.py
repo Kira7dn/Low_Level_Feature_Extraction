@@ -1,289 +1,300 @@
 import numpy as np
 import cv2
 from PIL import Image
-from typing import List, Dict, Union, Optional, Tuple
-from app.services.color_namer import ColorNamer
+from typing import List, Dict, Union, Tuple, Optional, Any
+import warnings
+from pydantic import BaseModel, Field
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.cluster import KMeans
+
+# Suppress specific warnings
+warnings.filterwarnings('ignore', category=ConvergenceWarning, module='sklearn')
+
+# Import the ColorFeatures model
+from .models import ColorFeatures
+
+# Keep ColorPalette for backward compatibility
+class ColorPalette(ColorFeatures):
+    """Legacy color palette class. Use ColorFeatures instead.
+    
+    Deprecated: This class is maintained for backward compatibility.
+    New code should use the ColorFeatures class from app.services.models.
+    """
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "primary": "#1a73e8",
+                "background": "#f8f9fa",
+                "accent": ["#0d47a1", "#64b5f6"],
+                "metadata": {
+                    "success": True,
+                    "timestamp": 0.0,
+                    "processing_time": 0.0
+                }
+            }
+        }
 
 class ColorExtractor:
     @staticmethod
     def rgb_to_hex(rgb: tuple) -> str:
-        """Convert RGB tuple to HEX string"""
+        """Convert RGB tuple to HEX string."""
         return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
     
     @staticmethod
-    def extract_colors(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[str, List[str]]]:
+    def hex_to_rgb(hex_color: str) -> tuple:
+        """Convert HEX color to RGB tuple."""
+        hex_color = hex_color.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    
+    @staticmethod
+    def get_contrast_ratio(color1: str, color2: str) -> float:
+        """Calculate contrast ratio between two colors (WCAG 2.0)."""
+        def get_luminance(c: str) -> float:
+            # Convert hex to RGB
+            r, g, b = (int(c[i:i+2], 16) / 255.0 for i in (1, 3, 5) if len(c) >= 6)
+            # Convert to linear RGB
+            r = r / 12.92 if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
+            g = g / 12.92 if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
+            b = b / 12.92 if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b
+        
+        l1 = get_luminance(color1)
+        l2 = get_luminance(color2)
+        lighter, darker = (l1, l2) if l1 > l2 else (l2, l1)
+        return (lighter + 0.05) / (darker + 0.05)
+    
+    @staticmethod
+    def is_light_color(rgb: tuple) -> bool:
+        """Check if a color is light using relative luminance."""
+        r, g, b = [x / 255.0 for x in rgb]
+        luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        return luminance > 0.6
+    
+    @staticmethod
+    def _process_image(image: Union[np.ndarray, Image.Image, None]) -> np.ndarray:
+        """Process input image and convert to RGB numpy array.
+        
+        Args:
+            image: Input image as numpy array, PIL Image, or None
+            
+        Returns:
+            np.ndarray: Processed RGB image as numpy array with shape (height, width, 3)
+            
+        Raises:
+            ValueError: If image format is not supported or image is invalid
         """
-        Extract dominant colors using K-means clustering with improved color detection.
+        DEFAULT_IMAGE = np.zeros((100, 100, 3), dtype=np.uint8)
+        
+        # Handle None input
+        if image is None:
+            return DEFAULT_IMAGE
+            
+        # Handle PIL Image
+        if isinstance(image, Image.Image):
+            try:
+                # Convert PIL Image to numpy array
+                img_array = np.array(image)
+                if img_array.size == 0:
+                    return DEFAULT_IMAGE
+                    
+                # Handle different color modes
+                if image.mode == 'RGBA':
+                    # Create white background for transparent images
+                    background = Image.new('RGB', image.size, (255, 255, 255))
+                    background.paste(image, mask=image.split()[3])
+                    img_array = np.array(background)
+                elif image.mode != 'RGB':
+                    img_array = np.array(image.convert('RGB'))
+                    
+                return img_array.astype(np.uint8)
+                
+            except Exception as e:
+                print(f"Error processing PIL Image: {e}")
+                return DEFAULT_IMAGE
+                
+        # Handle numpy array
+        if isinstance(image, np.ndarray):
+            try:
+                # Handle empty array
+                if image.size == 0:
+                    return DEFAULT_IMAGE
+                    
+                # Make a copy to avoid modifying the original
+                img = image.copy()
+                
+                # Ensure we have at least 2D array
+                if len(img.shape) == 0:
+                    return DEFAULT_IMAGE
+                    
+                # Handle 1D array (flattened image)
+                if len(img.shape) == 1:
+                    # Try to reshape to 2D if possible
+                    side = int(np.sqrt(len(img) / 3))
+                    if side * side * 3 == len(img):
+                        img = img.reshape((side, side, 3))
+                    else:
+                        return DEFAULT_IMAGE
+                
+                # Handle 2D grayscale
+                if len(img.shape) == 2:
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                # Handle 3D images
+                elif len(img.shape) == 3:
+                    # Check channel position (H,W,C) or (C,H,W)
+                    if img.shape[0] <= 4:  # Assume (C,H,W)
+                        img = np.transpose(img, (1, 2, 0))  # Convert to (H,W,C)
+                    
+                    # Handle different channel counts
+                    if img.shape[2] == 1:  # Single channel
+                        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                    elif img.shape[2] == 3:  # RGB or BGR
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    elif img.shape[2] == 4:  # RGBA or BGRA
+                        img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
+                    else:  # More than 4 channels, take first 3
+                        img = img[..., :3]
+                
+                # Ensure correct data type and range
+                if img.dtype != np.uint8:
+                    if np.issubdtype(img.dtype, np.floating):
+                        img = (img * 255).clip(0, 255).astype(np.uint8)
+                    else:
+                        img = img.astype(np.uint8)
+                
+                return img
+                
+            except Exception as e:
+                print(f"Error processing numpy array: {e}")
+                return DEFAULT_IMAGE
+        
+        # If we get here, the input type is not supported
+        return DEFAULT_IMAGE
+    
+    @staticmethod
+    def _get_dominant_colors(pixels: np.ndarray, n_colors: int) -> tuple:
+        """Extract dominant colors using K-means clustering."""
+        # Get unique colors to avoid duplicate points
+        unique_colors = np.unique(pixels, axis=0)
+        
+        # Adjust number of colors if needed
+        actual_n_colors = min(n_colors, len(unique_colors))
+        if actual_n_colors < n_colors:
+            print(f"Warning: Only {len(unique_colors)} unique colors found, "
+                  f"reducing number of clusters from {n_colors} to {actual_n_colors}")
+        
+        if actual_n_colors <= 1:
+            return unique_colors, np.array([0] * len(unique_colors))
+        
+        # Convert to float32 for K-means
+        pixels_float = np.float32(unique_colors)
+        
+        # Define criteria and apply K-means
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, 0.2)
+        try:
+            _, labels, centers = cv2.kmeans(
+                pixels_float, actual_n_colors, None, criteria, 10, cv2.KMEANS_PP_CENTERS
+            )
+            return centers.astype(np.uint8), labels.flatten()
+        except cv2.error as e:
+            print(f"Error in K-means: {str(e)}")
+            # Fallback to using unique colors directly
+            return unique_colors[:actual_n_colors], np.arange(actual_n_colors)
+    
+    @staticmethod
+    def extract_colors(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> ColorFeatures:
+        """
+        Extract dominant colors from an image.
         
         Args:
             image: Input image as numpy array or PIL Image
             n_colors: Number of colors to extract (default: 5)
         
         Returns:
-            Dictionary with the following structure:
-            {
-                'primary': str,         # Primary color in hex (e.g., '#007BFF')
-                'background': str,      # Background color in hex
-                'accent': List[str]      # List of accent colors in hex
-            }
+            ColorFeatures: Object containing primary, background, and accent colors
         """
-        def get_contrast_ratio(color1: str, color2: str) -> float:
-            """Calculate contrast ratio between two colors (WCAG 2.0)."""
-            def get_luminance(c: str) -> float:
-                # Convert hex to RGB
-                r, g, b = (int(c[i:i+2], 16) / 255.0 for i in (1, 3, 5))
-                # Convert to linear RGB
-                r = r / 12.92 if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
-                g = g / 12.92 if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
-                b = b / 12.92 if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
-                return 0.2126 * r + 0.7152 * g + 0.0722 * b
-            
-            l1 = get_luminance(color1)
-            l2 = get_luminance(color2)
-            lighter, darker = (l1, l2) if l1 > l2 else (l2, l1)
-            return (lighter + 0.05) / (darker + 0.05)
-        
-        def is_light_color(rgb: tuple) -> bool:
-            """Check if a color is light using relative luminance."""
-            r, g, b = [x / 255.0 for x in rgb]
-            luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
-            return luminance > 0.6
-        
-        def get_dominant_colors(pixels: np.ndarray, n_colors: int) -> tuple:
-            """Extract dominant colors using K-means clustering."""
-            if len(pixels) < n_colors * 5:  # Not enough pixels for clustering
-                n_colors = max(1, len(pixels) // 5)
-            
-            if n_colors <= 0:
-                return np.array([[0, 0, 0]]), np.array([len(pixels)])
-                
-            # Use mini-batch k-means for better performance with large images
-            if len(pixels) > 1000:
-                from sklearn.cluster import MiniBatchKMeans
-                kmeans = MiniBatchKMeans(
-                    n_clusters=n_colors,
-                    random_state=42,
-                    batch_size=1000,
-                    n_init=3
-                )
-                kmeans.fit(pixels)
-                centers = kmeans.cluster_centers_.astype(np.uint8)
-                counts = np.bincount(kmeans.labels_, minlength=len(centers))
-            else:
-                # For small images, use regular k-means with k-means++ initialization
-                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-                _, labels, centers = cv2.kmeans(
-                    pixels.astype(np.float32),
-                    n_colors,
-                    None,
-                    criteria,
-                    10,
-                    cv2.KMEANS_PP_CENTERS
-                )
-                counts = np.bincount(labels.flatten(), minlength=len(centers))
-            
-            # Sort colors by frequency (most common first)
-            sorted_indices = np.argsort(-counts)
-            return centers[sorted_indices], counts[sorted_indices]
-        
         try:
-            # Convert PIL Image to numpy array if needed
-            if isinstance(image, Image.Image):
-                # Convert to RGB mode if needed
-                if image.mode == 'RGBA':
-                    # Create a white background
-                    background = Image.new('RGB', image.size, (255, 255, 255))
-                    # Paste using alpha channel
-                    background.paste(image, mask=image.split()[3] if image.mode == 'RGBA' and len(image.split()) > 3 else None)
-                    image = background
-                elif image.mode != 'RGB':
-                    image = image.convert('RGB')
-                # Convert to numpy array
-                image = np.array(image)
+            # Process the input image
+            img_array = ColorExtractor._process_image(image)
             
-            # Ensure we have a valid image
-            if image is None or image.size == 0:
-                raise ValueError("Invalid or empty image")
-                
-            # Convert image to RGB format if needed
-            if len(image.shape) == 2:  # Grayscale
-                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-            elif len(image.shape) == 3:
-                if image.shape[2] == 4:  # RGBA
-                    # Convert RGBA to RGB with white background
-                    alpha = image[:, :, 3] / 255.0
-                    image = image[:, :, :3]
-                    image = (255 * (1 - alpha)[:, :, None] + image * alpha[:, :, None]).astype(np.uint8)
-                elif image.shape[2] == 1:  # Single channel
-                    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-                elif image.shape[2] != 3:  # Not RGB
-                    raise ValueError(f"Unexpected number of channels: {image.shape[2]}")
+            # Reshape the image to be a list of pixels
+            pixels = img_array.reshape(-1, 3)
             
-            # Get image dimensions
-            height, width = image.shape[:2]
+            # Add a small amount of noise to prevent duplicate points
+            if len(pixels) > 0:
+                noise = np.random.normal(0, 0.5, pixels.shape).astype(np.int8)
+                pixels = np.clip(pixels.astype(np.int32) + noise, 0, 255).astype(np.uint8)
             
-            # Convert from BGR to LAB color space - better for color perception
-            image_lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+            # Get dominant colors
+            centers, labels = ColorExtractor._get_dominant_colors(pixels, n_colors)
             
-            # Sample border pixels to determine background color (more efficient sampling)
-            border_ratio = 0.15  # Sample 15% of the border for better accuracy
-            border_width = max(1, int(min(width, height) * border_ratio))
+            # Count occurrences of each label
+            if len(centers) > 1:
+                counts = np.bincount(labels, minlength=len(centers))
+                # Sort colors by frequency (most common first)
+                sorted_indices = np.argsort(-counts)
+                centers = centers[sorted_indices]
+                counts = counts[sorted_indices]
             
-            # Sample border pixels with adaptive stride
-            stride = max(1, border_width // 5)  # More samples for better accuracy
-            top_border = image_lab[:border_width:stride, :, :].reshape(-1, 3)
-            bottom_border = image_lab[-border_width::stride, :, :].reshape(-1, 3)
-            left_border = image_lab[:, :border_width:stride, :].reshape(-1, 3)
-            right_border = image_lab[:, -border_width::stride, :].reshape(-1, 3)
+            # Convert colors to hex
+            hex_colors = [ColorExtractor.rgb_to_hex(tuple(color)) for color in centers]
             
-            # Combine all border pixels
-            border_pixels = np.vstack([top_border, bottom_border, left_border, right_border])
-            
-            # Find the most common color in LAB space with tolerance for similar colors
-            from sklearn.cluster import DBSCAN
-            
-            # Use DBSCAN to group similar colors in LAB space
-            clustering = DBSCAN(eps=5, min_samples=5, n_jobs=-1).fit(border_pixels)
-            
-            # Find the largest cluster (background)
-            if len(np.unique(clustering.labels_)) > 1:
-                bg_cluster = np.argmax(np.bincount(1 + clustering.labels_)) - 1
-                bg_mask = clustering.labels_ == bg_cluster
-                background_color_lab = np.median(border_pixels[bg_mask], axis=0).astype(np.uint8)
-            else:
-                # Fallback to most common color if clustering fails
-                unique_colors, counts = np.unique(border_pixels, axis=0, return_counts=True)
-                background_color_lab = unique_colors[np.argmax(counts)]
-            
-            # Convert background color back to RGB for consistency
-            background_color_bgr = cv2.cvtColor(
-                np.array([[background_color_lab]], dtype=np.uint8), 
-                cv2.COLOR_LAB2BGR
-            )[0][0]
-            background_color_rgb = tuple(background_color_bgr[::-1])  # Convert to RGB
-            bg_hex = ColorExtractor.rgb_to_hex(background_color_rgb)
-            
-            # Reshape the image to be a list of pixels for clustering
-            pixels = image_lab.reshape(-1, 3).astype(np.float32)
-            
-            # Filter out background colors to focus on foreground content
-            bg_distance = np.linalg.norm(pixels - background_color_lab, axis=1)
-            fg_mask = bg_distance > 10  # Threshold to separate foreground
-            
-            if np.any(fg_mask):
-                fg_pixels = pixels[fg_mask]
-            else:
-                fg_pixels = pixels  # Fallback to all pixels if no foreground detected
-            
-            # Get dominant colors from foreground
-            if len(fg_pixels) > 0:
-                centers, _ = get_dominant_colors(fg_pixels, n_colors)
-                
-                # Convert LAB colors back to RGB hex
-                hex_colors = []
-                for color in centers:
-                    color_bgr = cv2.cvtColor(
-                        np.array([[color.astype(np.uint8)]], dtype=np.uint8), 
-                        cv2.COLOR_LAB2BGR
-                    )[0][0]
-                    hex_colors.append(ColorExtractor.rgb_to_hex(tuple(color_bgr[::-1])))
-            else:
-                hex_colors = ['#000000']  # Fallback color
-            
-            # Remove background color from palette if present
-            hex_colors = [c for c in hex_colors if c.lower() != bg_hex.lower()]
+            # Remove white and black from palette if present
+            hex_colors = [c for c in hex_colors if c.lower() not in ['#ffffff', '#000000']]
             
             # If no colors left after filtering, add a contrasting color
             if not hex_colors:
-                hex_colors = ['#000000' if is_light_color(background_color_rgb) else '#FFFFFF']
+                bg_color = '#000000' if ColorExtractor.is_light_color((255, 255, 255)) else '#FFFFFF'
+                return ColorFeatures(
+                    primary=bg_color,
+                    background=bg_color,
+                    accent=[bg_color] * 3,
+                    metadata={
+                        'success': True,
+                        'timestamp': 0.0,  # Will be set by the router
+                        'processing_time': 0.0  # Will be set by the router
+                    }
+                )
             
-            # Find the most contrasting color to the background as primary
-            max_contrast = 0
-            primary = hex_colors[0]
+            # Find the primary color (most frequent non-background color)
+            primary = hex_colors[0] if hex_colors else '#000000'
             
-            for color in hex_colors:
-                if color.lower() == bg_hex.lower():
-                    continue
-                contrast = get_contrast_ratio(color, bg_hex)
-                if contrast > max_contrast:
-                    max_contrast = contrast
-                    primary = color
+            # Get accent colors (all other colors except primary)
+            accent_colors = [c for c in hex_colors if c != primary][:3]  # Max 3 accent colors
             
-            # Ensure good contrast for primary color
-            if max_contrast < 3:  # WCAG AA minimum is 4.5:1 for normal text
-                primary = '#000000' if is_light_color(background_color_rgb) else '#FFFFFF'
-            
-            # Get accent colors (excluding primary and background)
-            accent = [c for c in hex_colors if c.lower() not in (primary.lower(), bg_hex.lower())]
-            
-            # Limit number of accent colors
-            max_accent = min(4, len(accent))  # Maximum 4 accent colors
-            accent = accent[:max_accent]
-            
-            # If no accent colors, generate some based on primary color
-            if not accent and primary.lower() != bg_hex.lower():
-                # Generate a complementary color
-                r, g, b = [int(primary[i:i+2], 16) for i in (1, 3, 5)]
-                comp_color = ColorExtractor.rgb_to_hex((255 - r, 255 - g, 255 - b))
-                if comp_color.lower() not in (primary.lower(), bg_hex.lower()):
-                    accent.append(comp_color)
-            
-            # Ensure we have at least one accent color
-            if not accent and primary.lower() != bg_hex.lower():
-                # Generate a lighter/darker variant of primary
-                r, g, b = [int(primary[i:i+2], 16) for i in (1, 3, 5)]
-                if is_light_color((r, g, b)):
-                    # Darken if primary is light
-                    variant = tuple(max(0, c - 40) for c in (r, g, b))
+            # Ensure we have at least 3 accent colors by duplicating if necessary
+            while len(accent_colors) < 3:
+                if accent_colors:
+                    accent_colors.append(accent_colors[-1])
                 else:
-                    # Lighten if primary is dark
-                    variant = tuple(min(255, c + 40) for c in (r, g, b))
-                accent.append(ColorExtractor.rgb_to_hex(variant))
+                    accent_colors.append(primary)
             
-            # Return the final color palette
-            return {
-                'primary': primary,
-                'background': bg_hex,
-                'accent': accent
-            }
-        
+            # Determine background color (light or dark based on primary color)
+            bg_color = '#FFFFFF' if not ColorExtractor.is_light_color(
+                ColorExtractor.hex_to_rgb(primary)) else '#000000'
+            
+            return ColorFeatures(
+                primary=primary,
+                background=bg_color,
+                accent=accent_colors[:3],  # Return max 3 accent colors
+                metadata={
+                    'success': True,
+                    'timestamp': 0.0,  # Will be set by the router
+                    'processing_time': 0.0  # Will be set by the router
+                }
+            )
+            
         except Exception as e:
-            # Log the error for debugging
             import traceback
             print(f"Error in extract_colors: {str(e)}\n{traceback.format_exc()}")
-            return {
-                'primary': '#000000',
-                'background': '#FFFFFF',
-                'accent': []
-            }
-    
-    @staticmethod
-    def analyze_palette(image: Union[np.ndarray, Image.Image], n_colors: int = 5) -> Dict[str, Union[List[Dict[str, Union[str, List[int]]]], Dict[str, Union[str, List[int]]]]]:
-        """
-        Analyze color palette with detailed information
-        
-        Args:
-            image: Input image as numpy array or PIL Image
-        
-        Returns:
-            Dictionary with color palette details
-        """
-        # Extract colors
-        hex_colors = ColorExtractor.extract_colors(image, n_colors)
-        
-        # Convert hex back to RGB for detailed response
-        palette = []
-        for hex_color in [hex_colors['primary'], hex_colors['background']] + hex_colors['accent']:
-            # Convert hex to RGB
-            rgb = tuple(int(hex_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-            
-            # Get color details including name
-            color_details = ColorNamer.get_color_details(rgb)
-            palette.append(color_details)
-        
-        return {
-            'colors': palette,
-            'primary': palette[0]['hex'] if palette else '#000000',
-            'background': palette[1]['hex'] if len(palette) > 1 else '#000000',
-            'accent': [color['hex'] for color in palette[2:]] if len(palette) > 2 else []
-        }
+            # Return default colors in case of error
+            return ColorFeatures(
+                primary='#000000',
+                background='#FFFFFF',
+                accent=['#666666', '#999999', '#CCCCCC'],
+                metadata={
+                    'success': False,
+                    'error': str(e),
+                    'timestamp': 0.0,
+                    'processing_time': 0.0
+                }
+            )

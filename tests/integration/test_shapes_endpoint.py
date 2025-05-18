@@ -23,9 +23,9 @@ def test_extract_shapes_success():
             files={"file": (f.name, f, "image/png")}
         )
         # Status code validation
-        print(f"Response status code: {response.status_code}")
-        print(f"Response headers: {response.headers}")
-        print(f"Response content: {response.json()}")
+        # print(f"Response status code: {response.status_code}")
+        # print(f"Response headers: {response.headers}")
+        # print(f"Response content: {response.json()}")
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
     # Processing time validation
@@ -34,8 +34,8 @@ def test_extract_shapes_success():
         f"Processing time {processing_time}s exceeds maximum limit"
     
     # Performance rating
-    performance_rating = get_performance_rating(processing_time)
-    print(f"Performance Rating: {performance_rating}")
+    # performance_rating = get_performance_rating(processing_time)
+    # print(f"Performance Rating: {performance_rating}")
     
     # Response structure validation
     result = response.json()
@@ -80,7 +80,7 @@ def test_extract_shapes_no_file():
     response = client.post("/api/v1/shapes/detect")
     
     print(f"Response status code: {response.status_code}")
-    print(f"Response content: {response.json()}")
+    # print(f"Response content: {response.json()}")
     
     assert response.status_code in [400, 422]  # Either validation error or missing file error
     data = response.json()

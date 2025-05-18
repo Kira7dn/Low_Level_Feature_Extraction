@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 import pytesseract
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+
+from .models import FontFeatures  # Import the FontFeatures model
 
 class FontDetector:
     # List of common fonts to compare against
@@ -104,8 +106,8 @@ class FontDetector:
         else:  # Dark gray or black
             return "Bold"
 
-    @staticmethod
-    def detect_font(image: np.ndarray) -> Dict[str, str]:
+    @classmethod
+    def detect_font(cls, image: np.ndarray) -> Optional[FontFeatures]:
         """
         Main method to detect font properties
         
@@ -113,32 +115,44 @@ class FontDetector:
             image (np.ndarray): Input image
         
         Returns:
-            Dict with font detection results in the format:
-            {
-                'font_family': str  # Detected font family
-            }
+            Optional[FontFeatures]: Font detection results or None if no text detected
         """
-        # Preprocess image
-        binary = FontDetector.preprocess_image(image)
-        
-        # Detect text regions
-        text_regions = FontDetector.detect_text_regions(binary)
-        
-        # If no text regions found, return None
-        if not text_regions:
+        try:
+            # Preprocess image
+            binary = cls.preprocess_image(image)
+            
+            # Detect text regions
+            text_regions = cls.detect_text_regions(binary)
+            
+            # If no text regions found, return None
+            if not text_regions:
+                return None
+            
+            # Use the largest text region for analysis
+            largest_region = max(text_regions, key=lambda r: r[2] * r[3])
+            x, y, w, h = largest_region
+            
+            # Extract text region
+            text_region = image[y:y+h, x:x+w]
+            
+            # Get font family and estimate size/weight
+            font_family = cls.identify_font_family(text_region)
+            font_size = cls.estimate_font_size(h)
+            font_weight = cls.estimate_font_weight(text_region)
+            
+            # Return FontFeatures object
+            return FontFeatures(
+                font_family=font_family,
+                font_size=float(font_size),
+                font_style=font_weight,
+                confidence=0.8  # Default confidence, can be refined
+            )
+            
+        except Exception as e:
+            # Log error and return None
+            import logging
+            logging.error(f"Error in font detection: {str(e)}")
             return None
-        
-        # Use the largest text region for analysis
-        largest_region = max(text_regions, key=lambda r: r[2] * r[3])
-        x, y, w, h = largest_region
-        
-        # Extract text region
-        text_region = image[y:y+h, x:x+w]
-        
-        # Return just the font family in the new format
-        return {
-            "font_family": FontDetector.identify_font_family(text_region)
-        }
 
     @staticmethod
     def identify_font_family(region: np.ndarray) -> str:

@@ -1,20 +1,30 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 from app.routers import colors, text, shapes, shadows, fonts, unified_analysis
+from app.core.config import settings
 
 def create_app():
     global app
+    
+    # Configure logging
+    logging.basicConfig(level=settings.LOG_LEVEL)
+    logger = logging.getLogger(__name__)
+    
     app = FastAPI(
-        title="Low-Level Feature Extraction API",
+        title=settings.PROJECT_NAME,
         description="API for extracting design elements from images",
-        version="1.0.0"
+        version="1.0.0",
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        docs_url="/docs",
+        redoc_url="/redoc"
     )
 
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=settings.BACKEND_CORS_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

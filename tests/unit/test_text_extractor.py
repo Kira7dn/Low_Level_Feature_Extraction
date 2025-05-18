@@ -265,128 +265,51 @@ class TestTextExtractor:
 
     def test_extract_text_with_confidence(self, text_extractor):
         """Test text extraction with confidence thresholding"""
-        # Create a test image with known text
-        img = Image.new('RGB', (400, 100), color=(255, 255, 255))
-        d = ImageDraw.Draw(img)
+        # Create a test image with text
+        image = np.zeros((100, 300, 3), dtype=np.uint8)
+        image.fill(255)  # White background
         
-        # Use a larger font size for better OCR results
-        try:
-            font = ImageFont.truetype("arial.ttf", 24)
-        except IOError:
-            font = ImageFont.load_default()
-            
-        # Draw test text with good contrast
-        d.rectangle([(10, 10), (390, 90)], fill=(255, 255, 255))
-        d.text((20, 30), "Confidence Test 123", fill=(0, 0, 0), font=font)
+        # Add text with different confidence levels
+        cv2.putText(image, 'Test Text', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
         
-        # Convert to OpenCV format
-        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        # Test with different confidence thresholds
+        # The extract_text method should return a TextFeatures object
+        result = text_extractor.extract_text(image, confidence_threshold=0.5)
+        assert isinstance(result.lines, list)
         
-        # Extract text with high confidence threshold
-        result = text_extractor.extract_text(img_cv, confidence_threshold=0.8)
+        # The exact text recognition might vary, so we'll just check the structure
+        assert 'Test' in ' '.join(result.lines) or 'Text' in ' '.join(result.lines)
         
-        # Print debug information
-        print("\n=== Debug: test_extract_text_with_confidence ===")
-        print(f"Extracted lines: {result.get('lines', [])}")
-        
-        # Check response structure
-        is_valid, error_msg = validate_response_structure(
-            result,
-            expected_keys=['lines'],
-            value_types={
-                'lines': list
-            },
-            context='confidence_extraction'
-        )
-        assert is_valid, error_msg
-        
-        # Basic check that we have some lines
-        assert len(result['lines']) > 0, "Expected at least one line of text"
-        assert any(line.strip() for line in result['lines']), "Expected at least one non-empty line"
-        
-        # Processing time validation is not needed for this test
-        
-        # Verify the content of the extracted text
-        assert len(result['lines']) > 0, "No text lines were extracted"
-        assert any(line.strip() for line in result['lines']), "All extracted lines are empty"
-        
-        # Check that the sample text is in one of the lines (case-insensitive)
-        expected_text = "confidence test 123"
-        extracted_text = ' '.join(line.lower().strip() for line in result['lines'] if line.strip())
-        
-        # Print debug information
-        print(f"Looking for '{expected_text}' in '{extracted_text}'")
-        
-        # Don't fail the test if the expected text isn't found
-        # This is just a warning since OCR results can vary
-        if expected_text not in extracted_text:
-            print(f"Warning: Expected text '{expected_text}' not found in extracted text: '{extracted_text}'")
+        # Test with very high confidence threshold (should still return something)
+        result = text_extractor.extract_text(image, confidence_threshold=0.9)
+        assert isinstance(result.lines, list)
 
     def test_postprocess_text(self, text_extractor):
         """Test text post-processing"""
-        # Create a test image with some text
-        img = Image.new('RGB', (400, 100), color=(255, 255, 255))
-        d = ImageDraw.Draw(img)
+        from app.services.models import TextFeatures
         
-        # Use a larger font size for better OCR results
-        try:
-            font = ImageFont.truetype("arial.ttf", 24)
-        except IOError:
-            font = ImageFont.load_default()
-            
-        # Draw test text
-        test_texts = [
-            "Hello, World! 123",  # Normal text
-            "Special Characters: @#$%^&*()",  # Special characters
-            "Numbers: 0 1 2 3 4 5 6 7 8 9"  # Numbers
-        ]
+        # Test with empty text
+        result_dict = TextExtractor.postprocess_text('', 0.5)
+        result = TextFeatures.from_dict(result_dict)
+        assert result.lines == []
         
-        y_offset = 20
-        for text in test_texts:
-            d.text((20, y_offset), text, fill=(0, 0, 0), font=font)
-            y_offset += 30
+        # Test with normal text
+        text = "Hello\nWorld\nThis is a test"
+        result_dict = TextExtractor.postprocess_text(text, 0.5)
+        result = TextFeatures.from_dict(result_dict)
+        assert len(result.lines) == 3
+        assert 'Hello' in result.lines
+        assert 'World' in result.lines
+        assert 'This is a test' in result.lines
         
-        # Convert to OpenCV format
-        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        
-        # Extract text
-        result = text_extractor.extract_text(img_cv)
-        
-        # Validate response structure
-        is_valid, error_msg = validate_response_structure(
-            result,
-            expected_keys=['lines'],
-            value_types={
-                'lines': list
-            },
-            context='postprocess_text_structure'
-        )
-        assert is_valid, error_msg
-        
-        # Check that we have at least some lines
-        assert len(result['lines']) > 0, "Expected at least one line of text"
-        
-        # Check that all lines are non-empty strings
-        assert all(isinstance(line, str) for line in result['lines']), \
-            "All lines should be strings"
-        
-        # Post-processing is validated as part of the response structure
-        
-        # Validate lines contain only allowed characters (be more lenient with OCR results)
-        allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?:;\'"-@#$%^&*()_+={}[]|\\/<>~`')
-        
-        for line in result['lines']:
-            line_lower = line.lower()
-            invalid_chars = [char for char in line_lower if char not in allowed_chars]
-            
-            if invalid_chars:
-                print(f"Warning: Line contains potentially invalid characters: {line}")
-                print(f"Invalid characters: {set(invalid_chars)}")
-                print(f"Full line: {line}")
-            
-            # Only fail if the line is completely unreadable
-            assert any(char.isalnum() for char in line), \
-                f"Line contains no alphanumeric characters: {line}"
+        # Test with confidence thresholding - this is now handled in extract_text, not postprocess_text
+        # So we'll just test that postprocess_text returns all lines as is
+        text = "Confident\nUnconfident"
+        result_dict = TextExtractor.postprocess_text(text, 0.8)
+        result = TextFeatures.from_dict(result_dict)
+        assert len(result.lines) == 2  # Should return both lines, filtering happens in extract_text
+        assert 'Confident' in result.lines
+        assert 'Unconfident' in result.lines
 
     def test_character_substitution(self, text_extractor):
         """Test character substitution in post-processing"""

@@ -1,26 +1,21 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from pydantic import BaseModel
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 from app.services.text_extractor import TextExtractor
+from app.services.models import TextFeatures
 from app.utils.image_validator import validate_image
 from app.services.image_processor import ImageProcessor
 
 router = APIRouter(prefix="/text", tags=["Text Extraction"])
 
-class TextExtractionResponse(BaseModel):
+class TextExtractionResponse(TextFeatures):
     """
     Response model for text extraction from images
     
-    Provides a comprehensive breakdown of text extracted from an image,
-    including the text lines, confidence scores, and bounding box locations.
-    
-    Attributes:
-        lines (List[str]): Extracted text lines
-        details (List[Dict]): Detailed information about each extracted text line
+    Provides a list of text lines and metadata about the extraction process.
     """
-    lines: List[str]
-    details: List[Dict[str, Union[str, float, Dict[str, int]]]]
+    pass
 
 class Base64TextRequest(BaseModel):
     """
@@ -28,7 +23,36 @@ class Base64TextRequest(BaseModel):
     """
     base64_image: str
 
-@router.post("/extract", response_model=TextExtractionResponse, 
+@router.post("/extract", 
+    response_model=TextExtractionResponse,
+    responses={
+        200: {
+            "description": "Successful text extraction",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "lines": ["Sample text line 1", "Sample text line 2"],
+                        "details": [
+                            {
+                                "text": "Sample text line 1",
+                                "confidence": 95.5,
+                                "bbox": [10, 20, 100, 30]
+                            }
+                        ],
+                        "metadata": {
+                            "confidence": 95.5,
+                            "success": True,
+                            "timestamp": 1620000000.0,
+                            "processing_time": 0.5
+                        }
+                    }
+                }
+            }
+        },
+        400: {"description": "Invalid image file"},
+        422: {"description": "Validation error"},
+        500: {"description": "Internal server error during text extraction"}
+    },
     summary="Extract Text from Image",
     description="""Detect and extract visible text from an uploaded image.
     
@@ -36,14 +60,10 @@ class Base64TextRequest(BaseModel):
     - Supports multiple languages
     - Provides confidence scores for extracted text
     - Returns bounding box locations for each text line
+    - Includes detailed metadata about the extraction process
     
-    Supported image formats: PNG, JPEG, BMP
-    """,
-    responses={
-        200: {"description": "Successful text extraction"},
-        400: {"description": "Invalid image file"},
-        500: {"description": "Internal server error during text extraction"}
-    })
+    Supported image formats: PNG, JPEG, BMP, WEBP
+    """)
 async def extract_text(
     file: UploadFile = File(..., description="Image file to analyze. Must be PNG, JPEG, or BMP."),
     lang: str = Query('eng', description="Language for OCR (default: English)"),
@@ -73,6 +93,12 @@ async def extract_text(
         # Extract text
         text_data = TextExtractor.extract_text(cv_image, lang=lang, config=config)
         print("text_data: ", text_data)
+        
+        # If text_data is already a TextFeatures object, return it directly
+        if hasattr(text_data, 'dict'):
+            return text_data
+            
+        # Otherwise, create a new TextExtractionResponse
         return TextExtractionResponse(**text_data)
     except HTTPException as e:
         raise e
@@ -129,6 +155,11 @@ async def extract_text_base64(
         # Extract text
         text_data = TextExtractor.extract_text(cv_image, lang=lang, config=config)
         
+        # If text_data is already a TextFeatures object, return it directly
+        if hasattr(text_data, 'dict'):
+            return text_data
+            
+        # Otherwise, create a new TextExtractionResponse
         return TextExtractionResponse(**text_data)
     except HTTPException as e:
         raise e

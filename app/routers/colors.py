@@ -7,21 +7,17 @@ from pydantic import BaseModel
 from PIL import Image
 import numpy as np
 
-from app.services.color_extractor import ColorExtractor
+from app.services.color_extractor import ColorExtractor, ColorPalette
 from app.utils.image_validator import validate_image
 from app.utils.error_handler import ValidationException
 
 router = APIRouter(prefix="/colors", tags=["Colors"])
 
-class ColorExtractionResponse(BaseModel):
+class ColorExtractionResponse(ColorPalette):
     """Response model for color extraction
     
     Provides a comprehensive breakdown of colors extracted from an image.
-    
-    Attributes:
-        primary (str): The most dominant color in HEX format
-        background (str): The background color in HEX format
-        accent (List[str]): List of accent colors in HEX format
+    Extends the base ColorPalette model with API-specific documentation.
     
     Example:
         {
@@ -30,9 +26,7 @@ class ColorExtractionResponse(BaseModel):
             "accent": ["#00FF00", "#FFFF00"]
         }
     """
-    primary: str
-    background: str
-    accent: List[str]
+    pass
 
 @router.post("/extract", response_model=ColorExtractionResponse, 
     summary="Extract Color Palette from Image",
@@ -90,17 +84,15 @@ async def extract_colors(
     # Convert to numpy array
     image_array = np.array(image)
     
-    # Extract color palette
-    try:
-        color_analysis = ColorExtractor.analyze_palette(image_array, n_colors)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error analyzing color palette")
+    # Extract colors using the service
+    color_palette = ColorExtractor.extract_colors(image_array, n_colors)
     
-    return {
-        'primary': color_analysis['primary'],
-        'background': color_analysis['background'],
-        'accent': color_analysis['accent']
-    }
+    # Convert ColorPalette to response model
+    return ColorExtractionResponse(
+        primary=color_palette.primary or "#000000",
+        background=color_palette.background or "#FFFFFF",
+        accent=color_palette.accent or []
+    )
 
 class Base64ImageRequest(BaseModel):
     base64_image: str
@@ -158,10 +150,15 @@ async def extract_colors_base64(
     # Convert to numpy array
     image_array = np.array(image)
     
-    # Extract color palette
+    # Extract colors using the service
     try:
-        color_analysis = ColorExtractor.analyze_palette(image_array, n_colors)
+        color_palette = ColorExtractor.extract_colors(image_array, n_colors)
+        
+        # Convert ColorPalette to response model
+        return ColorExtractionResponse(
+            primary=color_palette.primary or "#000000",
+            background=color_palette.background or "#FFFFFF",
+            accent=color_palette.accent or []
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error analyzing color palette")
-    
-    return color_analysis
+        raise HTTPException(status_code=500, detail=f"Error analyzing color palette: {str(e)}")

@@ -2,9 +2,10 @@ import cv2
 import pytesseract
 import re
 import numpy as np
-from typing import Any, Dict
-from typing import List, Dict, Union
+from typing import Any, Dict, List, Union, Optional
 import time
+
+from .models import TextFeatures, FontFeatures  # Import the new models
 
 class TextExtractor:
     @classmethod
@@ -40,7 +41,7 @@ class TextExtractor:
     
     @classmethod
     def extract_text(cls, image, lang: str = 'eng', config: str = None, 
-                    confidence_threshold: float = 0.1) -> Dict[str, Any]:
+                    confidence_threshold: float = 0.1) -> TextFeatures:
         """Extract text from image using Tesseract OCR with enhanced parameters
         
         Args:
@@ -50,10 +51,7 @@ class TextExtractor:
             confidence_threshold: Minimum confidence score (0-1) for text to be included
             
         Returns:
-            Dictionary with the following structure:
-            {
-                'lines': List[str]  # List of extracted text lines
-            }
+            TextFeatures: Object containing extracted text and metadata
         """
         start_time = time.time()
         
@@ -101,19 +99,17 @@ class TextExtractor:
                 )
             except Exception as inner_e:
                 error_msg = f"{error_msg}; Fallback config also failed: {str(inner_e)}"
-                return {
-                    'text': '',
-                    'lines': [],
-                    'blocks': [],
-                    'details': [],
-                    'metadata': {
+                return TextFeatures(
+                    lines=[],
+                    details=[],
+                    metadata={
                         'error': error_msg,
                         'success': False,
                         'timestamp': time.time(),
-                        'processing_time': time.time() - start_time,
-                        'confidence': 0.0
+                        'confidence': 0.0,
+                        'processing_time': time.time() - start_time
                     }
-                }
+                )
         
         # Process the results
         text_blocks = []
@@ -175,13 +171,29 @@ class TextExtractor:
                 'bbox': line['bbox']
             })
         
-        # Return just the lines of text
-        return {
-            'lines': lines_list
-        }
+        # Process text and return results
+        processed = cls.postprocess_text(' '.join(lines_list), confidence_threshold)
+        
+        # Ensure we have the expected structure
+        if not isinstance(processed, dict):
+            processed = {}
+            
+        # Create TextFeatures with default values if needed
+        return TextFeatures(
+            lines=processed.get('lines', lines_list),
+            details=processed.get('details', details_list),
+            metadata={
+                'confidence': processed.get('metadata', {}).get('confidence', 
+                    sum(line['confidence'] for line in details_list) / len(details_list) if details_list else 0.0
+                ),
+                'success': bool(processed.get('lines', lines_list)),
+                'timestamp': time.time(),
+                'processing_time': time.time() - start_time
+            }
+        )
     
     @classmethod
-    def extract_from_file(cls, file_path: str, **kwargs) -> Dict[str, Any]:
+    def extract_from_file(cls, file_path: str, **kwargs) -> TextFeatures:
         """Extract text from an image file
         
         Args:
@@ -189,7 +201,7 @@ class TextExtractor:
             **kwargs: Additional arguments to pass to extract_text
             
         Returns:
-            Dictionary containing extracted text and metadata
+            TextFeatures: Object containing extracted text and metadata
         """
         try:
             # Read the image
@@ -200,30 +212,49 @@ class TextExtractor:
             # Extract text
             result = cls.extract_text(image, **kwargs)
             
-            # Ensure the result has all required fields
-            if 'details' not in result:
-                result['details'] = result.get('blocks', [])
-            if 'confidence' not in result['metadata']:
-                result['metadata']['confidence'] = result['metadata'].get('avg_confidence', 0.0)
-            if 'processing_time' not in result['metadata']:
-                result['metadata']['processing_time'] = 0.0
-                
+            # Ensure we have a valid TextFeatures object
+            if not isinstance(result, TextFeatures):
+                # If result is a dict, convert it to TextFeatures
+                if isinstance(result, dict):
+                    return TextFeatures(
+                        lines=result.get('lines', []),
+                        details=result.get('details', result.get('blocks', [])),
+                        metadata={
+                            'confidence': result.get('metadata', {}).get('confidence', 
+                                result.get('metadata', {}).get('avg_confidence', 0.0)
+                            ),
+                            'success': bool(result.get('lines')),
+                            'timestamp': time.time(),
+                            'processing_time': result.get('metadata', {}).get('processing_time', 0.0)
+                        }
+                    )
+                else:
+                    # If result is not a dict, create a new TextFeatures with defaults
+                    return TextFeatures(
+                        lines=[],
+                        details=[],
+                        metadata={
+                            'error': 'Invalid result format',
+                            'success': False,
+                            'timestamp': time.time(),
+                            'confidence': 0.0,
+                            'processing_time': 0.0
+                        }
+                    )
             return result
             
         except Exception as e:
-            return {
-                'text': '',
-                'lines': [],
-                'blocks': [],
-                'details': [],
-                'metadata': {
+            return TextFeatures(
+                lines=[],
+                details=[],
+                metadata={
                     'error': str(e),
                     'success': False,
                     'timestamp': time.time(),
                     'confidence': 0.0,
                     'processing_time': 0.0
                 }
-            }
+            )
     
     @staticmethod
     def postprocess_text(text: str, confidence_threshold: float = 0.6) -> Dict[str, Union[List[str], List[Dict[str, Union[str, float]]]]]:
