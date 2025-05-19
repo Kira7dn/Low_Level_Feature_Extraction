@@ -18,14 +18,7 @@ dev-debug.log
 
 
 # Tests and examples
-# tests/
-# examples/
-# *test*/
-tests/test_results/
-# tests/test_images/
-# tests/test_data/
-tests/debug/
-
+tests/
 
 # Build and distribution
 build/
@@ -33,6 +26,7 @@ dist/
 *.egg-info/
 
 # IDE and editor
+.cursor/
 .idea/
 .vscode/
 *.suo
@@ -46,15 +40,12 @@ dist/
 # OS generated files
 .DS_Store
 Thumbs.db
-.cursor
-
-image_processing_performance.log
-
-.roo
+# Project specific
+.roo/
 .roomodes
 .taskmasterconfig
 .windsurfrules
+image_processing_performance.log
 package-lock.json
 package.json
 requirements-dev.txt
-tests
