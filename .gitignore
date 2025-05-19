@@ -1,51 +1,127 @@
 # Python
 __pycache__/
 *.py[cod]
+*.py[co]
 *.so
+.Python
 .pytest_cache/
 .coverage
 htmlcov/
-venv/
+.coverage.*
+.coverage*
+.coverage.*
+,cover
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
 .env
-.venv/
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
 
-# Tests and examples
+# Tests
 tests/
 
-# Build and distribution
-build/
-dist/
-*.egg-info/
-
-# IDE and editor
-.cursor/
+# IDEs and editors
 .idea/
 .vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 *.swp
 *.swo
+*~
+.project
+.pydevproject
+.pyc
+.ropeproject
+.settings/
+.ropeproject
+.cursor/
+*.sublime-*
+*.sublime-workspace
+*.sublime-project
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
 # Project specific
 .roo/
 .roomodes
 .taskmasterconfig
 .windsurfrules
 image_processing_performance.log
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
 package-lock.json
 package.json
+
+# Testing
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+
+# Development
 requirements-dev.txt
+*.local
+
+# Documentation
+docs/_build/
+docs/api/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Local development settings
+local_settings.py
+.env.local
+.env.*.local
