@@ -1,5 +1,0 @@
-Error type: AssertionError
-Error message: No text was extracted from the image
-assert 0 > 0
- +  where 0 = len('')
-Error args: ("No text was extracted from the image\nassert 0 > 0\n +  where 0 = len('')",)
