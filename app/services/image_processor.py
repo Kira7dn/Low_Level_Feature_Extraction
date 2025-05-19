@@ -196,7 +196,6 @@ class ImageProcessor:
         return ImageProcessor.compress_image(resized_image)
     
     @staticmethod
-    @staticmethod
     @PerformanceMonitor.track_performance()
     def auto_process_image(
         image_bytes: bytes,

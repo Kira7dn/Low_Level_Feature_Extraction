@@ -504,3 +504,119 @@ ValueError: Invalid URL format: __init__() needs keyword-only argument scheme
 2025-05-18 14:58:23,430 - app.routers.analyze - INFO - Processing uploaded file: hq720.jpg
 2025-05-18 14:58:23,431 - app.routers.analyze - INFO - Read 96702 bytes, content-type: image/jpeg
 2025-05-18 14:58:23,431 - app.routers.analyze - ERROR - Image validation failed for request 2ded6ff8-1a64-4e77-a31e-6511f40fa992: 'staticmethod' object is not callable
+2025-05-18 22:10:39,817 - app.routers.analyze - INFO - Starting image analysis request b7b20a5e-2eca-4262-8554-a533dbd1c761
+2025-05-18 22:10:39,818 - app.routers.analyze - INFO - Processing uploaded file: hq720.jpg
+2025-05-18 22:10:39,819 - app.routers.analyze - INFO - Read 96702 bytes, content-type: image/jpeg
+2025-05-18 22:10:39,859 - root - INFO - Performance: auto_process_image Execution Time: 0.0404 seconds, Memory Usage: 0 bytes
+2025-05-18 22:10:39,864 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 22:10:39,864 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 22:10:39,864 - app.routers.analyze - INFO - Starting color extraction for request b7b20a5e-2eca-4262-8554-a533dbd1c761
+2025-05-18 22:10:40,966 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeed2b', '#92b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 22:10:40,966 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeed2b', '#92b6c3'], 'metadata': {}}
+2025-05-18 22:10:40,967 - app.routers.analyze - INFO - Starting text extraction for request b7b20a5e-2eca-4262-8554-a533dbd1c761
+2025-05-18 22:10:41,596 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'] details=[{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747581041.596798, 'processing_time': 0.629117488861084}
+2025-05-18 22:10:41,598 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'], 'details': [{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747581041.596798, 'processing_time': 0.629117488861084}}
+2025-05-18 22:10:41,626 - app.routers.analyze - INFO - [b7b20a5e-2eca-4262-8554-a533dbd1c761] Processed 3/3 features (failed: 0) in 1813.00ms
+2025-05-18 22:19:11,030 - app.routers.analyze - INFO - Starting image analysis request 4569ce63-7a71-49ca-8f14-e352934f6583
+2025-05-18 22:19:11,039 - app.routers.analyze - INFO - Processing image from URL: https://i.ytimg.com/vi/ylLzFytBW4g/hq720.jpg
+2025-05-18 22:19:11,794 - app.routers.analyze - INFO - Downloaded 96702 bytes, content-type: image/jpeg
+2025-05-18 22:19:11,852 - root - INFO - Performance: auto_process_image Execution Time: 0.0573 seconds, Memory Usage: 0 bytes
+2025-05-18 22:19:11,866 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 22:19:11,866 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 22:19:11,867 - app.routers.analyze - INFO - Starting color extraction for request 4569ce63-7a71-49ca-8f14-e352934f6583
+2025-05-18 22:19:12,973 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeee2b', '#93b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 22:19:12,973 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeee2b', '#93b6c3'], 'metadata': {}}
+2025-05-18 22:19:12,974 - app.routers.analyze - INFO - Starting text extraction for request 4569ce63-7a71-49ca-8f14-e352934f6583
+2025-05-18 22:19:13,476 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'] details=[{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747581553.4762635, 'processing_time': 0.5009346008300781}
+2025-05-18 22:19:13,477 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'], 'details': [{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747581553.4762635, 'processing_time': 0.5009346008300781}}
+2025-05-18 22:19:13,520 - app.routers.analyze - INFO - [4569ce63-7a71-49ca-8f14-e352934f6583] Processed 3/3 features (failed: 0) in 2500.00ms
+2025-05-18 22:21:23,309 - app.routers.analyze - INFO - Starting image analysis request f089e6dd-323f-4dbd-94f4-0fe5ecac750a
+2025-05-18 22:21:23,320 - app.routers.analyze - INFO - Processing image from URL: https://i.ytimg.com/vi/ylLzFytBW4g/hq720.jpg
+2025-05-18 22:21:23,950 - app.routers.analyze - INFO - Downloaded 96702 bytes, content-type: image/jpeg
+2025-05-18 22:21:24,025 - root - INFO - Performance: auto_process_image Execution Time: 0.0729 seconds, Memory Usage: 0 bytes
+2025-05-18 22:21:24,053 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 22:21:24,054 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 22:21:24,057 - app.routers.analyze - INFO - Starting color extraction for request f089e6dd-323f-4dbd-94f4-0fe5ecac750a
+2025-05-18 22:21:26,008 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeee2b', '#93b6c2'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 22:21:26,012 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeee2b', '#93b6c2'], 'metadata': {}}
+2025-05-18 22:21:26,012 - app.routers.analyze - INFO - Starting text extraction for request f089e6dd-323f-4dbd-94f4-0fe5ecac750a
+2025-05-18 22:21:26,464 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'] details=[{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747581686.4633915, 'processing_time': 0.4498167037963867}
+2025-05-18 22:21:26,465 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes! BOY   iL Ollama _-_- LangFlow'], 'details': [{'text': 'How  created a in minutes! BOY   iL Ollama _-_- LangFlow', 'original': 'How | created a in minutes! BOY ) ¢ iL Ollama _-_- LangFlow', 'length': 56}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747581686.4633915, 'processing_time': 0.4498167037963867}}
+2025-05-18 22:21:26,608 - app.routers.analyze - INFO - [f089e6dd-323f-4dbd-94f4-0fe5ecac750a] Processed 3/3 features (failed: 0) in 3297.00ms
+2025-05-18 15:37:51,232 - app.routers.analyze - INFO - Starting image analysis request 9e4861af-6ee3-413f-aa31-bfa3d44b4bb9
+2025-05-18 15:37:51,237 - app.routers.analyze - INFO - Processing uploaded file: hq720.jpg
+2025-05-18 15:37:51,238 - app.routers.analyze - INFO - Read 96702 bytes, content-type: image/jpeg
+2025-05-18 15:37:51,297 - root - INFO - Performance: auto_process_image Execution Time: 0.0581 seconds, Memory Usage: 0 bytes
+2025-05-18 15:37:51,327 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 15:37:51,328 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 15:37:51,330 - app.routers.analyze - INFO - Starting color extraction for request 9e4861af-6ee3-413f-aa31-bfa3d44b4bb9
+2025-05-18 15:37:52,954 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeee2b', '#93b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 15:37:52,955 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeee2b', '#93b6c3'], 'metadata': {}}
+2025-05-18 15:37:52,955 - app.routers.analyze - INFO - Starting text extraction for request 9e4861af-6ee3-413f-aa31-bfa3d44b4bb9
+2025-05-18 15:37:54,887 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes!  i ee ae  Ollama LangFlow'] details=[{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747582674.8874488, 'processing_time': 1.9311728477478027}
+2025-05-18 15:37:54,888 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes!  i ee ae  Ollama LangFlow'], 'details': [{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747582674.8874488, 'processing_time': 1.9311728477478027}}
+2025-05-18 15:37:54,956 - app.routers.analyze - ERROR - Unexpected error in request 9e4861af-6ee3-413f-aa31-bfa3d44b4bb9: zip() takes no keyword arguments
+Traceback (most recent call last):
+  File "/app/app/routers/analyze.py", line 548, in analyze_image
+    return process_feature_results(
+  File "/app/app/routers/analyze.py", line 667, in process_feature_results
+    for feature, result in zip(features_requested, results, strict=True):
+TypeError: zip() takes no keyword arguments
+2025-05-18 15:38:35,089 - app.routers.analyze - INFO - Starting image analysis request 035d6792-5d2b-41dd-a5c6-2ed4dff3cb09
+2025-05-18 15:38:35,089 - app.routers.analyze - INFO - Processing uploaded file: hq720.jpg
+2025-05-18 15:38:35,090 - app.routers.analyze - INFO - Read 96702 bytes, content-type: image/jpeg
+2025-05-18 15:38:35,104 - root - INFO - Performance: auto_process_image Execution Time: 0.0137 seconds, Memory Usage: 0 bytes
+2025-05-18 15:38:35,126 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 15:38:35,127 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 15:38:35,127 - app.routers.analyze - INFO - Starting color extraction for request 035d6792-5d2b-41dd-a5c6-2ed4dff3cb09
+2025-05-18 15:38:35,990 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeed2b', '#93b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 15:38:35,991 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeed2b', '#93b6c3'], 'metadata': {}}
+2025-05-18 15:38:35,991 - app.routers.analyze - INFO - Starting text extraction for request 035d6792-5d2b-41dd-a5c6-2ed4dff3cb09
+2025-05-18 15:38:36,378 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes!  i ee ae  Ollama LangFlow'] details=[{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747582716.378031, 'processing_time': 0.38600683212280273}
+2025-05-18 15:38:36,379 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes!  i ee ae  Ollama LangFlow'], 'details': [{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747582716.378031, 'processing_time': 0.38600683212280273}}
+2025-05-18 15:38:36,394 - app.routers.analyze - ERROR - Unexpected error in request 035d6792-5d2b-41dd-a5c6-2ed4dff3cb09: zip() takes no keyword arguments
+Traceback (most recent call last):
+  File "/app/app/routers/analyze.py", line 548, in analyze_image
+    return process_feature_results(
+  File "/app/app/routers/analyze.py", line 667, in process_feature_results
+    for feature, result in zip(features_requested, results, strict=True):
+TypeError: zip() takes no keyword arguments
+2025-05-18 15:46:09,868 - app.routers.analyze - INFO - Starting image analysis request 01f97b8f-7463-4c8b-b2c9-140253b8bc85
+2025-05-18 15:46:09,869 - app.routers.analyze - INFO - Processing uploaded file: hq720.jpg
+2025-05-18 15:46:09,870 - app.routers.analyze - INFO - Read 96702 bytes, content-type: image/jpeg
+2025-05-18 15:46:09,906 - root - INFO - Performance: auto_process_image Execution Time: 0.0352 seconds, Memory Usage: 0 bytes
+2025-05-18 15:46:09,927 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 15:46:09,927 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 15:46:09,928 - app.routers.analyze - INFO - Starting color extraction for request 01f97b8f-7463-4c8b-b2c9-140253b8bc85
+2025-05-18 15:46:11,062 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeee2b', '#93b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 15:46:11,063 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeee2b', '#93b6c3'], 'metadata': {}}
+2025-05-18 15:46:11,064 - app.routers.analyze - INFO - Starting text extraction for request 01f97b8f-7463-4c8b-b2c9-140253b8bc85
+2025-05-18 15:46:11,907 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes!  i ee ae  Ollama LangFlow'] details=[{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747583171.9076114, 'processing_time': 0.8429088592529297}
+2025-05-18 15:46:11,908 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes!  i ee ae  Ollama LangFlow'], 'details': [{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747583171.9076114, 'processing_time': 0.8429088592529297}}
+2025-05-18 15:46:11,928 - app.routers.analyze - INFO - [01f97b8f-7463-4c8b-b2c9-140253b8bc85] Processed 3/3 features (failed: 0) in 2060.12ms
+2025-05-18 15:46:51,094 - app.routers.analyze - INFO - Starting image analysis request 1e1539a8-9136-4f38-b7f7-50fb0d3579e7
+2025-05-18 15:46:51,095 - app.routers.analyze - INFO - Processing image from URL: https://i.ytimg.com/vi/ylLzFytBW4g/hq720.jpg
+2025-05-18 15:46:51,719 - app.routers.analyze - INFO - Downloaded 96702 bytes, content-type: image/jpeg
+2025-05-18 15:46:51,726 - root - INFO - Performance: auto_process_image Execution Time: 0.0068 seconds, Memory Usage: 0 bytes
+2025-05-18 15:46:51,746 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 15:46:51,746 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 15:46:51,747 - app.routers.analyze - INFO - Starting color extraction for request 1e1539a8-9136-4f38-b7f7-50fb0d3579e7
+2025-05-18 15:46:52,744 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#eeee2b', '#92b6c3'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 15:46:52,745 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#eeee2b', '#92b6c3'], 'metadata': {}}
+2025-05-18 15:46:52,745 - app.routers.analyze - INFO - Starting text extraction for request 1e1539a8-9136-4f38-b7f7-50fb0d3579e7
+2025-05-18 15:46:53,123 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes!  i ee ae  Ollama LangFlow'] details=[{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747583213.1235142, 'processing_time': 0.3778998851776123}
+2025-05-18 15:46:53,124 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes!  i ee ae  Ollama LangFlow'], 'details': [{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747583213.1235142, 'processing_time': 0.3778998851776123}}
+2025-05-18 15:46:53,138 - app.routers.analyze - INFO - [1e1539a8-9136-4f38-b7f7-50fb0d3579e7] Processed 3/3 features (failed: 0) in 2043.57ms
+2025-05-18 15:47:01,927 - app.routers.analyze - INFO - Starting image analysis request e81d823d-d3a6-43de-9e19-1bb22bf442c3
+2025-05-18 15:47:01,928 - app.routers.analyze - INFO - Processing image from URL: https://i.ytimg.com/vi/ylLzFytBW4g/hq720.jpg
+2025-05-18 15:47:02,443 - app.routers.analyze - INFO - Downloaded 96702 bytes, content-type: image/jpeg
+2025-05-18 15:47:02,449 - root - INFO - Performance: auto_process_image Execution Time: 0.0053 seconds, Memory Usage: 0 bytes
+2025-05-18 15:47:02,470 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8, min: 0, max: 255
+2025-05-18 15:47:02,470 - app.routers.analyze - INFO - Processed image - shape: (720, 1280, 3), dtype: uint8
+2025-05-18 15:47:02,470 - app.routers.analyze - INFO - Starting color extraction for request e81d823d-d3a6-43de-9e19-1bb22bf442c3
+2025-05-18 15:47:03,466 - app.routers.analyze - INFO - Extracted colors: primary='#101912' background='#FFFFFF' accent=['#188416', '#92b6c3', '#eeee2b'] metadata={'success': True, 'timestamp': 0.0, 'processing_time': 0.0}
+2025-05-18 15:47:03,467 - app.routers.analyze - INFO - Formatted color features: {'primary': '#101912', 'background': '#FFFFFF', 'accent': ['#188416', '#92b6c3', '#eeee2b'], 'metadata': {}}
+2025-05-18 15:47:03,467 - app.routers.analyze - INFO - Starting text extraction for request e81d823d-d3a6-43de-9e19-1bb22bf442c3
+2025-05-18 15:47:03,742 - app.routers.analyze - INFO - Extracted text: lines=['How  created a in minutes!  i ee ae  Ollama LangFlow'] details=[{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}] metadata={'confidence': 1.0, 'success': True, 'timestamp': 1747583223.742164, 'processing_time': 0.2741200923919678}
+2025-05-18 15:47:03,742 - app.routers.analyze - INFO - Formatted text features: {'lines': ['How  created a in minutes!  i ee ae  Ollama LangFlow'], 'details': [{'text': 'How  created a in minutes!  i ee ae  Ollama LangFlow', 'original': 'How | created a in minutes! Â¢ i ee ae ) Ollama LangFlow', 'length': 52}], 'metadata': {'confidence': 1.0, 'success': True, 'timestamp': 1747583223.742164, 'processing_time': 0.2741200923919678}}
+2025-05-18 15:47:03,755 - app.routers.analyze - INFO - [e81d823d-d3a6-43de-9e19-1bb22bf442c3] Processed 3/3 features (failed: 0) in 1828.04ms
