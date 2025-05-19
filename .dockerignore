@@ -69,7 +69,7 @@ Thumbs.db
 logs/
 uploads/
 ```
-.roo/
+.roo
 
 image_processing_performance.log
 .roomodes

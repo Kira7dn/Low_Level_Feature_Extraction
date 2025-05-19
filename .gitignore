@@ -50,10 +50,11 @@ Thumbs.db
 
 image_processing_performance.log
 
-.roo/
+.roo
 .roomodes
 .taskmasterconfig
 .windsurfrules
 package-lock.json
 package.json
 requirements-dev.txt
+tests
