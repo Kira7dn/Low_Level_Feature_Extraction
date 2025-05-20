@@ -9,11 +9,15 @@ import logging
 from app.monitoring.performance import PerformanceMonitor
 
 # Configure logging
+log_dir = '/logs'
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'image_processing_performance.log')
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('image_processing_performance.log'),
+        logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
