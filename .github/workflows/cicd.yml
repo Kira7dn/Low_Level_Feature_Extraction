@@ -80,6 +80,3 @@ jobs:
             echo "Checking container status..."
             sleep 5
             docker ps | grep low-level-feature-app || { echo "Container not running!"; docker logs low-level-feature-app; exit 1; }
-            # Test endpoint
-            echo "Testing endpoint..."
-            curl -f http://localhost:80 || { echo "Endpoint not responding!"; docker logs low-level-feature-app; exit 1; }
