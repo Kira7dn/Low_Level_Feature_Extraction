@@ -1,127 +1,66 @@
-# Python
-__pycache__/
-*.py[cod]
-*.py[co]
-*.so
-.Python
-.pytest_cache/
-.coverage
-htmlcov/
-.coverage.*
-.coverage*
-.coverage.*
-,cover
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
+# Version Control
+.git
+.gitignore
 
-# Environments
-.env
-.venv
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
+.venv/
+.env
 .pytest_cache/
+.coverage
+htmlcov/
 
-# Tests
-tests/
-
-# IDEs and editors
-.idea/
+# IDE and Editor
 .vscode/
+.idea/
 *.swp
 *.swo
-*~
-.project
-.pydevproject
-.pyc
-.ropeproject
-.settings/
-.ropeproject
-.cursor/
-*.sublime-*
-*.sublime-workspace
-*.sublime-project
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project specific
-.roo/
-.roomodes
-.taskmasterconfig
-.windsurfrules
+# Logs and Databases
+*.log
+*.sqlite3
 image_processing_performance.log
 
-# Node.js
+# Node
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
 package-lock.json
 package.json
 
-# Testing
-.mypy_cache/
-.pytest_cache/
-.coverage
-coverage.xml
-*.cover
+# Project Specific
+performance_metrics/
+logs/
+uploads/
+sample_images/
+test_images/
+tasks/
+scripts/
 
-# Development
-requirements-dev.txt
-*.local
+# Tests and Examples
+tests/
+examples/
+*test*/
 
 # Documentation
-docs/_build/
-docs/api/
+*.md
 
-# Jupyter Notebook
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
+# Project Configuration
+.roomodes
+.taskmasterconfig
+.windsurfrules
 
-# Local development settings
-local_settings.py
-.env.local
-.env.*.local
+# OS Generated Files
+.DS_Store
+Thumbs.db
+
+Dockerfile
+docker-compose.yml
+
+# AI rules
+.cursor/
+.roo/

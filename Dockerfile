@@ -1,27 +1,34 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim-buster
+# Sử dụng base image Python 3.10 slim với Debian Bullseye
+FROM python:3.10-slim-bullseye
 
-# Set the working directory in the container
+# Thiết lập thư mục làm việc
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
+# Cài đặt hệ thống dependencies và git
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    software-properties-common \
-    git \
     tesseract-ocr \
     libgl1-mesa-glx \
+    git \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Clone repository từ GitHub
+RUN git clone https://github.com/Kira7dn/Low_Level_Feature_Extraction.git . \
+    && apt-get purge -y git \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Cài đặt Python dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Make port 8005 available to the world outside this container
-EXPOSE 8005
+# Tạo user không root để tăng bảo mật
+RUN useradd -m appuser
+USER appuser
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]
+# Mở port 80 (HTTP mặc định)
+EXPOSE 80
+
+# Chạy ứng dụng với Gunicorn + Uvicorn cho production
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:80"]
