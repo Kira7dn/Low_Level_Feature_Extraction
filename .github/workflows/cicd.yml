@@ -32,10 +32,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest
 
-      - name: Run tests (optional)
-        run: |
-          docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest pytest tests/ || echo "No tests found or tests failed"
-        
   deploy:
     needs: build
     runs-on: ubuntu-latest

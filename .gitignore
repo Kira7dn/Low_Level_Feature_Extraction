@@ -1,6 +1,5 @@
 # Version Control
 .git
-.gitignore
 
 # Python
 __pycache__
@@ -46,8 +45,6 @@ tests/
 examples/
 *test*/
 
-# Documentation
-*.md
 
 # Project Configuration
 .roomodes
