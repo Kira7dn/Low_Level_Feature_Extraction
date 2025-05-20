@@ -47,11 +47,11 @@ jobs:
             # Check if docker is installed
             if ! command -v docker >/dev/null 2>&1; then
               echo "Docker not found. Installing Docker..."
-              sudo apt update
-              sudo apt install -y docker.io
+              sudo dnf update -y
+              sudo dnf install -y docker
               sudo systemctl start docker
               sudo systemctl enable docker
-              sudo usermod -aG docker ubuntu
+              sudo usermod -aG docker ${{ secrets.EC2_USER }}
               newgrp docker
             fi
             # Verify Docker is running
