@@ -58,9 +58,6 @@ examples/
 .DS_Store
 Thumbs.db
 
-Dockerfile
-docker-compose.yml
-
 # AI rules
 .cursor/
 .roo/

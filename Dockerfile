@@ -4,20 +4,16 @@ FROM python:3.10-slim-bullseye
 # Thiết lập thư mục làm việc
 WORKDIR /app
 
-# Cài đặt hệ thống dependencies và git
+# Cài đặt hệ thống dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     tesseract-ocr \
     libgl1-mesa-glx \
-    git \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone repository từ GitHub
-RUN git clone https://github.com/Kira7dn/Low_Level_Feature_Extraction.git . \
-    && apt-get purge -y git \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+# Sao chép mã nguồn từ ngữ cảnh build (cung cấp bởi GitHub Actions)
+COPY . .
 
 # Cài đặt Python dependencies
 RUN pip install --no-cache-dir --upgrade pip \
