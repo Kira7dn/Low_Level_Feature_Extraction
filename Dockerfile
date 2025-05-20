@@ -19,17 +19,6 @@ COPY . .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Tạo thư mục logs và cấp quyền
-RUN mkdir -p /logs \
-    && chmod 777 /logs
-
-# Tạo user không root để tăng bảo mật
-RUN useradd -m appuser \
-    && chown -R appuser:appuser /logs
-
-# Chuyển sang user appuser
-USER appuser
-
 # Mở port 80 (HTTP mặc định)
 EXPOSE 80
 
