@@ -52,12 +52,15 @@ jobs:
               sudo systemctl start docker
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.EC2_USER }}
-              newgrp docker
             fi
-            # Verify Docker is running
-            docker info || exit 1
-            # Pull and deploy the image
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest
-            docker stop low-level-feature-app || true
-            docker rm low-level-feature-app || true
-            docker run -d -p 80:80 --name low-level-feature-app ${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest
+            # Verify Docker is running with sudo
+            sudo docker info || exit 1
+            # Login to Docker Hub if credentials are provided
+            if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+              echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            fi
+            # Pull and deploy the image with sudo
+            sudo docker pull "${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest"
+            sudo docker stop low-level-feature-app || true
+            sudo docker rm low-level-feature-app || true
+            sudo docker run -d --restart=always -p 80:80 --name low-level-feature-app "${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest"
