@@ -44,23 +44,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Check if docker is installed
-            if ! command -v docker >/dev/null 2>&1; then
-              echo "Docker not found. Installing Docker..."
-              sudo apt update
-              sudo apt install -y docker.io
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              sudo usermod -aG docker ${{ secrets.EC2_USER }}
-            fi
-            # Verify Docker is running with sudo
-            sudo docker info || exit 1
-            # Login to Docker Hub if credentials are provided
-            if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
-              echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            fi
-            # Pull and deploy the image with sudo
-            sudo docker pull "${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest"
-            sudo docker stop low-level-feature-app || true
-            sudo docker rm low-level-feature-app || true
-            sudo docker run -d --restart=always -p 80:80 --name low-level-feature-app "${{ secrets.DOCKERHUB_USERNAME }}/low-level-feature-app:latest"
+            cd /opt/low-feature-extraction
+            docker compose down
+            docker compose pull
+            docker image prune -f
+            docker compose up -d
