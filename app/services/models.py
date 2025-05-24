@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 class TextFeatures(BaseModel):
     """Model for text extraction results."""
@@ -52,9 +52,15 @@ class ColorFeatures(BaseModel):
     )
     accent: List[str] = Field(
         default_factory=list,
-        description="List of accent colors in hex format",
-        pattern=r'^#(?:[0-9a-fA-F]{3}){1,2}$'
+        description="List of accent colors in hex format"
     )
+    
+    @validator('accent', each_item=True)
+    def validate_accent_colors(cls, v):
+        import re
+        if not re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', v):
+            raise ValueError(f'Invalid hex color code: {v}')
+        return v
     metadata: Dict[str, Any] = Field(
         default_factory=dict,
         description="Additional metadata about the color extraction process"

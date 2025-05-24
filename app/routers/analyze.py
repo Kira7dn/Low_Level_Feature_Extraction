@@ -26,10 +26,10 @@ from pydantic import BaseModel, Field, HttpUrl
 
 # Local imports
 from ..core.config import settings
-from ..services.color_extractor import ColorExtractor, ColorPalette
+from ..services.color_extractor import ColorExtractor
 from ..services.font_detector import FontDetector
 from ..services.image_processor import ImageProcessor
-from ..services.models import FontFeatures, TextFeatures
+from ..services.models import ColorFeatures, FontFeatures, TextFeatures
 from ..services.text_extractor import TextExtractor
 from ..utils.image_validator import validate_image
 
@@ -121,7 +121,7 @@ class UnifiedAnalysisResponse(BaseModel):
     request_id: str
     features: Dict[
         str,
-        Optional[Union[Dict[str, Any], ColorPalette, TextFeatures, FontFeatures]],
+        Optional[Union[Dict[str, Any], ColorFeatures, TextFeatures, FontFeatures]],
     ] = Field(..., description="Extracted features keyed by feature name")
     errors: Dict[str, FeatureError] = Field(
         default_factory=dict,
@@ -131,7 +131,7 @@ class UnifiedAnalysisResponse(BaseModel):
 
     class Config:
         json_encoders = {
-            "ColorPalette": lambda v: v.dict() if hasattr(v, "dict") else v,
+            "ColorFeatures": lambda v: v.dict() if hasattr(v, "dict") else v,
             "TextFeatures": lambda v: v.dict() if hasattr(v, "dict") else v,
             "FontFeatures": lambda v: v.dict() if hasattr(v, "dict") else v,
         }
@@ -590,7 +590,7 @@ def process_feature_results(
             try:
                 # Convert result to appropriate model based on feature type
                 if feature == FeatureType.COLORS and isinstance(result, dict):
-                    features[feature_name] = ColorPalette(**result)
+                    features[feature_name] = ColorFeatures(**result)
                 elif feature == FeatureType.TEXT and isinstance(result, dict):
                     features[feature_name] = TextFeatures(**result)
                 elif feature == FeatureType.FONTS and isinstance(result, dict):
@@ -650,7 +650,7 @@ def process_feature_results(
         metadata=metadata,
     )
 
-async def extract_color_features(image: np.ndarray, request_id: str) -> ColorPalette:
+async def extract_color_features(image: np.ndarray, request_id: str) -> ColorFeatures:
     """Extract color features from the image.
     
     This function analyzes the input image to identify and extract dominant colors,
@@ -688,8 +688,8 @@ async def extract_color_features(image: np.ndarray, request_id: str) -> ColorPal
         colors = ColorExtractor.extract_colors(image)
         logger.info(f"Extracted colors: {colors}")
         
-        # Create ColorPalette instance
-        result = ColorPalette(
+        # Create ColorFeatures instance
+        result = ColorFeatures(
             primary=colors.primary,
             background=colors.background,
             accent=colors.accent or []
@@ -700,8 +700,18 @@ async def extract_color_features(image: np.ndarray, request_id: str) -> ColorPal
         
     except Exception as e:
         logger.error(f"Error extracting colors for request {request_id}: {str(e)}", exc_info=True)
-        # Return default ColorPalette on error
-        return ColorPalette()
+        # Return default ColorFeatures on error
+        return ColorFeatures(
+            primary='#000000',
+            background='#FFFFFF',
+            accent=['#666666', '#999999', '#CCCCCC'],
+            metadata={
+                'success': False,
+                'error': str(e),
+                'timestamp': 0.0,
+                'processing_time': 0.0
+            }
+        )
 
 async def extract_text_features(image: np.ndarray, request_id: str) -> TextFeatures:
     """Extract text features from the image using OCR.

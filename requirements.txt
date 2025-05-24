@@ -1,9 +1,10 @@
 # Core Dependencies
-fastapi>=0.95.1,<1.0.0
+fastapi>=0.100.0,<1.0.0
 uvicorn>=0.22.0,<1.0.0
-pydantic>=1.10.0,<2.0.0
-python-multipart>=0.0.6,<1.0.0
-python-dotenv>=1.0.0,<2.0.0
+pydantic>=2.0.0,<3.0.0
+pydantic-settings>=2.0.0,<3.0.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
 
 # Image Processing
 opencv-python-headless>=4.7.0.72,<5.0.0
@@ -17,3 +18,19 @@ scikit-learn>=1.0.0,<2.0.0  # For KMeans in color extraction
 aiohttp>=3.8.5,<4.0.0
 httpx>=0.23.0,<1.0.0
 gunicorn>=20.1.0,<21.0.0
+
+beautifulsoup4>=4.13.0,<5.0.0
+lxml>=5.0.0,<6.0.0
+playwright>=1.52.0,<2.0.0
+
+# Additional Dependencies
+aiosqlite>=0.21.0,<1.0.0
+fake-http-header>=0.3.5,<1.0.0
+fake-useragent>=2.2.0,<3.0.0
+humanize>=4.0.0,<5.0.0
+markdown-it-py>=3.0.0,<4.0.0
+rich>=14.0.0,<15.0.0
+
+# Required for some functionality
+cryptography>=45.0.0,<46.0.0
+pyOpenSSL>=25.1.0,<26.0.0
