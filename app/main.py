@@ -83,13 +83,9 @@ def create_app():
                 <ul>
                     <li>Color Analysis</li>
                     <li>Text Recognition</li>
-                    <li>Shape Detection</li>
-                    <li>Shadow Analysis</li>
-                    <li>Font Detection</li>
                 </ul>
                 <div class="links">
                     <a href="/docs">API Documentation</a>
-                    <a href="/api/v1/analyze">Try Analysis</a>
                 </div>
                 <p><small>Version: 1.0.0</small></p>
             </body>

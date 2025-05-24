@@ -282,11 +282,6 @@ async def download_image(
 
 # ===== Router and Endpoints =====
 
-@router.get("/test")
-async def test_endpoint():
-    """Test endpoint to verify route registration."""
-    return {"message": "Test endpoint is working!"}
-
 class PreprocessingMode(str, Enum):
     NONE = "none"
     AUTO = "auto"
@@ -317,23 +312,6 @@ class FeatureType(str, Enum):
     TEXT = "text"
     FONTS = "fonts"
 
-# @router.post(
-#     "/",
-#     response_model=UnifiedAnalysisResponse,
-#     status_code=status.HTTP_200_OK,
-#     summary="Image analysis",
-#     response_description="Comprehensive analysis of image features",
-#     responses={
-#         200: {"description": "Successful analysis"},
-#         400: {"description": "Invalid request, image format, or URL"},
-#         408: {"description": "Request timeout"},
-#         413: {"description": "Image file too large"},
-#         415: {"description": "Unsupported media type"},
-#         422: {"description": "Validation error"},
-#         429: {"description": "Rate limit exceeded"},
-#         500: {"description": "Internal server error"}
-#     }
-# )
 @router.post(
     "/",
     response_model=UnifiedAnalysisResponse,
@@ -341,75 +319,27 @@ class FeatureType(str, Enum):
     response_description="Comprehensive analysis of image features",
     responses={
         status.HTTP_200_OK: {"model": UnifiedAnalysisResponse},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid request parameters or image format"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid URL or image format"},
         status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {"description": "Image file too large"},
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {"description": "Unsupported image format"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Validation error"},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Internal server error"},
     },
-    summary="Analyze image",
-    description="Process an image and extract features like colors, text, and fonts.",
+    summary="Analyze image from URL",
+    description="Process an image from a URL and extract features like colors, text, and fonts.",
 )
 async def analyze_image(
-    request: Request,
-    preprocessing: PreprocessingMode = Form(
-        PreprocessingMode.AUTO,
-        description="""
-        Image preprocessing mode:
-        - 'none': No preprocessing (fastest, least accurate)
-        - 'auto': Automatic preprocessing based on image content (recommended)
-        - 'high_quality': Enhanced preprocessing for better accuracy (slower)
-        - 'performance': Optimized for speed (may reduce accuracy)
-        """
-    ),
-    features: Optional[List[FeatureType]] = Query(
-        None,
-        description="""
-        Select one or more features to extract. If not specified, all features will be extracted.
-        Hold Ctrl/Cmd to select multiple options.
-        """,
-        examples={
-            "all_features": {
-                "summary": "Extract all features",
-                "description": "Extract colors, text, and fonts (same as not specifying features)",
-                "value": None,
-            },
-            "colors_only": {
-                "summary": "Extract colors only",
-                "value": [FeatureType.COLORS],
-            },
-            "text_and_fonts": {
-                "summary": "Extract text and fonts",
-                "value": [FeatureType.TEXT, FeatureType.FONTS],
-            },
-        },
-    ),
-    file: Optional[UploadFile] = File(None),
-    url: Optional[Any] = Form(None)
+    url: HttpUrl = Form(..., description="URL of the image to process")
 ) -> UnifiedAnalysisResponse:
-    """Analyze an image and extract specified or all available features.
+    """Analyze an image from URL and extract visual features.
     
-    This endpoint processes an image to extract various visual features including colors, 
-    text content, and font information. Features are processed in parallel for optimal 
-    performance. The endpoint is designed to handle a variety of image types and sizes,
-    with automatic preprocessing to improve feature extraction accuracy.
-    
-    Performance Characteristics:
-        - Typical processing time: 500ms - 2000ms for standard images
-        - Memory usage: Scales with image size (approx. 3-5x image size)
-        - Thread-safe: Can handle multiple concurrent requests
-        - Caching: Responses are cached for 1 hour
+    This endpoint processes an image from the provided URL to extract various visual 
+    features including colors, text content, and font information. The endpoint is 
+    designed to handle a variety of image types and sizes with automatic preprocessing 
+    to improve feature extraction accuracy.
     
     Args:
-        file: Uploaded image file. Must be a valid image in PNG, JPG, JPEG, or WEBP format.
-            Maximum file size is 10MB.
-        preprocessing: Preprocessing mode that affects both performance and accuracy.
-            - 'none': Fastest but least accurate, suitable for already processed images.
-            - 'auto': Balances speed and accuracy, good for most use cases.
-            - 'high_quality': Best accuracy but slowest, use for critical applications.
-            - 'performance': Fastest processing, use for real-time applications.
-        features: List of features to extract. If not provided, all available features
-            will be extracted. Each feature extraction runs in parallel.
+        url: URL of the image to analyze. Must be a valid image URL pointing to a
+            supported image format (PNG, JPG, JPEG, WEBP). Maximum file size is 10MB.
             
     Returns:
         UnifiedAnalysisResponse: A structured response containing:
@@ -421,83 +351,47 @@ async def analyze_image(
     
     Raises:
         HTTPException: With appropriate status code for different error scenarios:
-            - 400 (Bad Request): Invalid image format or parameters
-            - 413 (Payload Too Large): Image file exceeds maximum allowed size
+            - 400 (Bad Request): Invalid URL or image format
+            - 413 (Payload Too Large): Image file exceeds 10MB limit
             - 415 (Unsupported Media Type): Unsupported image format
-            - 422 (Unprocessable Entity): Validation error in request parameters
-            - 429 (Too Many Requests): Rate limit exceeded
             - 500 (Internal Server Error): Unexpected server error
-            - 503 (Service Unavailable): Service temporarily unavailable
     
     Example Request:
         ```bash
-        curl -X POST "http://localhost:8000/analyze" \
-             -H "accept: application/json" \
-             -F "file=@document.jpg" \
-             -F "preprocessing=auto" \
-             -F "features=colors" \
-             -F "features=text"
+        curl -X POST "http://localhost:8000/analyze/" \
+             -F "url=https://example.com/image.jpg"
         ```
-    
-    Example Response:
-        See UnifiedAnalysisResponse class docstring for example response structure.
     """
     request_id = str(uuid4())
     start_time = asyncio.get_event_loop().time()
     logger.info(f"Starting image analysis request {request_id}")
 
     try:
-        # Debug: Log request form data
-        form_data = await request.form()
-        logger.debug(f"Received form data: {dict(form_data)}")
-        logger.debug(f"File: {file}")
-        logger.debug(f"URL: {url}")
+        logger.info(f"Processing image from URL: {url}")
         
-        # Validate that exactly one source is provided
-        if not file and not url:
-            raise HTTPException(
-                status_code=422,
-                detail="Either 'file' or 'url' must be provided"
+        # Download the image
+        try:
+            image_bytes, content_type = await download_image(
+                url,
+                max_size=10 * 1024 * 1024,  # 10MB
+                timeout=30
             )
-        
-        if file and url:
+            logger.info(f"Downloaded {len(image_bytes)} bytes, content-type: {content_type}")
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            logger.error(f"Failed to process URL: {str(e)}")
             raise HTTPException(
-                status_code=422,
-                detail="Only one of 'file' or 'url' should be provided"
-            )
-
-        # Get image bytes from the appropriate source
-        if url:
-            logger.info(f"Processing image from URL: {url}")
-            try:
-                # Pass the URL directly to download_image which will handle the scheme
-                image_bytes, content_type = await download_image(
-                    url,
-                    max_size=settings.MAX_IMAGE_SIZE_BYTES,
-                    timeout=settings.IMAGE_DOWNLOAD_TIMEOUT
-                )
-                logger.info(f"Downloaded {len(image_bytes)} bytes, content-type: {content_type}")
-            except HTTPException as he:
-                # Re-raise HTTP exceptions as-is
-                raise he
-            except Exception as e:
-                logger.error(f"Failed to process URL: {str(e)}")
-                raise HTTPException(
-                    status_code=400,
-                    detail={
-                        "error": {
-                            "code": "INVALID_URL",
-                            "message": f"Invalid URL or failed to download image: {str(e)}"
-                        }
+                status_code=400,
+                detail={
+                    "error": {
+                        "code": "INVALID_URL",
+                        "message": f"Invalid URL or failed to download image: {str(e)}"
                     }
-                )
-        else:
-            logger.info(f"Processing uploaded file: {file.filename}")
-            image_bytes = await file.read()
-            content_type = file.content_type
-            logger.info(f"Read {len(image_bytes)} bytes, content-type: {content_type}")
-            
-        # Validate image content type - using 400 instead of 415 to match test expectations
+                }
+            )
+        
+        # Validate image content type
         if not content_type or not content_type.startswith('image/'):
             logger.error(f"Invalid content type: {content_type}")
             raise HTTPException(
@@ -509,10 +403,11 @@ async def analyze_image(
                     }
                 }
             )
-            
+        
+        # Process the image with default settings
         cv_image = await validate_and_preprocess_image(
             image_bytes, 
-            preprocessing,
+            PreprocessingMode.AUTO,
             request_id
         )
         
@@ -521,7 +416,16 @@ async def analyze_image(
             logger.info(f"Processed image - shape: {cv_image.shape}, dtype: {cv_image.dtype}")
         else:
             logger.error("Failed to process image - cv_image is None")
-            
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": {
+                        "code": "IMAGE_PROCESSING_ERROR",
+                        "message": "Failed to process the image"
+                    }
+                }
+            )
+        
         # Define all available features and their extraction functions
         feature_map = {
             FeatureType.COLORS: lambda: extract_color_features(cv_image, request_id),
@@ -529,10 +433,10 @@ async def analyze_image(
             FeatureType.FONTS: lambda: extract_font_features(cv_image, request_id)
         }
         
-        # If no features specified, use all features
-        features_to_extract = list(feature_map.keys()) if not features else features
+        # Extract all features
+        features_to_extract = list(feature_map.keys())
         
-        # Execute selected tasks in parallel
+        # Execute tasks in parallel
         tasks = [
             asyncio.create_task(feature_map[feature]()) 
             for feature in features_to_extract
