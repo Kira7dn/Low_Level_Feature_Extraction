@@ -2,7 +2,15 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-from app.routers import analyze, dribbble
+import sys
+import os
+
+# Add the app directory to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import routers after path is set
+from app.routers.analyze import router as analyze_router
+from app.routers import dribbble
 from app.core.config import settings
 
 def create_app():
@@ -41,7 +49,7 @@ def create_app():
         )
 
     # Register routers
-    app.include_router(analyze.router, prefix="/api/v1", tags=["analyze"])
+    app.include_router(analyze_router, prefix="/api/v1", tags=["analyze"])
     app.include_router(dribbble.router, prefix="/api/v1")
     
     # Debug: Print all routes
