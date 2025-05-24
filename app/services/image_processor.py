@@ -6,17 +6,7 @@ import cv2
 from typing import Union, Tuple, Optional
 import time
 import logging
-from app.monitoring.performance import PerformanceMonitor
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('image_processing_performance.log'),
-        logging.StreamHandler()
-    ]
-)
 logger = logging.getLogger(__name__)
 
 class ImageProcessor:
@@ -26,7 +16,6 @@ class ImageProcessor:
     logger = logging.getLogger(__name__)
 
     @staticmethod
-    @PerformanceMonitor.track_performance()
     def load_image(image_bytes: bytes) -> Image.Image:
         """
         Load image from bytes into PIL Image
@@ -51,7 +40,6 @@ class ImageProcessor:
             ImageProcessor.logger.info(f"Image loading took {processing_time:.4f} seconds")
 
     @staticmethod
-    @PerformanceMonitor.track_performance()
     def load_cv2_image(image_bytes: bytes) -> np.ndarray:
         """Load image from bytes into OpenCV format
         
@@ -93,7 +81,6 @@ class ImageProcessor:
             ImageProcessor.logger.info(f"Image loading took {processing_time:.4f} seconds")
 
     @staticmethod
-    @PerformanceMonitor.track_performance()
     def resize_image(image: Union[Image.Image, np.ndarray], max_width: int = 1920, max_height: int = 1080, fit: str = 'max') -> Union[Image.Image, np.ndarray]:
         """
         Resize image while maintaining aspect ratio
@@ -131,7 +118,6 @@ class ImageProcessor:
             ImageProcessor.logger.info(f"Image resize to {max_width}x{max_height} took {processing_time:.4f} seconds")
 
     @staticmethod
-    @PerformanceMonitor.track_performance()
     def compress_image(image: Union[Image.Image, np.ndarray], quality: int = 85) -> bytes:
         """Compress image to reduce file size
         
@@ -196,7 +182,6 @@ class ImageProcessor:
         return ImageProcessor.compress_image(resized_image)
     
     @staticmethod
-    @PerformanceMonitor.track_performance()
     def auto_process_image(
         image_bytes: bytes,
         max_width: int = 1920,

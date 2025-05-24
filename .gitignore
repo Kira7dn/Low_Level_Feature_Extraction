@@ -1,51 +1,60 @@
+# Version Control
+.git
+
 # Python
-__pycache__/
-*.py[cod]
-*.so
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
 .pytest_cache/
 .coverage
 htmlcov/
-venv/
-.env
-.venv/
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
-
-
-# Tests and examples
-tests/
-
-# Build and distribution
-build/
-dist/
-*.egg-info/
-
-# IDE and editor
-.cursor/
-.idea/
+# IDE and Editor
 .vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.idea/
 *.swp
 *.swo
 
-# OS generated files
-.DS_Store
-Thumbs.db
-# Project specific
-.roo/
+# Logs and Databases
+*.log
+*.sqlite3
+image_processing_performance.log
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# Project Specific
+performance_metrics/
+logs/
+uploads/
+sample_images/
+test_images/
+tasks/
+scripts/
+
+# Tests and Examples
+tests/
+examples/
+*test*/
+
+
+# Project Configuration
 .roomodes
 .taskmasterconfig
 .windsurfrules
-image_processing_performance.log
-package-lock.json
-package.json
-requirements-dev.txt
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+
+# AI rules
+.cursor/
+.roo/
