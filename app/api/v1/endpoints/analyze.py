@@ -1,16 +1,29 @@
+"""
+Main router configuration for the analyze endpoints.
+
+This module sets up the main FastAPI router and includes all the route modules.
+"""
+
 from fastapi import APIRouter, Form, HTTPException, status
 from pydantic import HttpUrl
 from typing import List, Optional
 
 # Import models for type hints and response model
-from .models import UnifiedAnalysisResponse, FeatureType
+from app.api.v1.models.analyze import UnifiedAnalysisResponse, FeatureType
 
 # Import the main analyze function from the analyzer module
-from .analyzer import analyze_image
+from app.services.analyze.analyzer import analyze_image
 
-# Create a new router for the routes
-router = APIRouter()
 
+# Create the main router
+router = APIRouter(
+    prefix="/analyze",
+    tags=["analyze"],
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid request"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "Internal server error"},
+    },
+)
 # Register the route
 @router.post(
     "/",

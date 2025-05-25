@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import HTTPException, status
 
 from app.services.color_extractor import ColorExtractor
-from app.services.models import ColorFeatures
+from app.api.v1.models.analyze import ColorFeatures
 
 logger = logging.getLogger(__name__)
 

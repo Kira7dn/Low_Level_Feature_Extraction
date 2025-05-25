@@ -21,7 +21,7 @@ from app.services.font_detector import FontDetector
 from app.services.image_processor import ImageProcessor
 from app.services.text_extractor import TextExtractor
 from app.utils.image_validator import validate_image
-from .models import (
+from app.api.v1.models.analyze import (
     UnifiedAnalysisResponse,
     AnalysisMetadata,
     FeatureError,
@@ -32,6 +32,9 @@ from .feature_extractors import (
     extract_text_features,
     extract_font_features,
 )
+
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field, validator
 
 logger = logging.getLogger(__name__)
 
@@ -290,3 +293,4 @@ def process_feature_results(
         errors=errors,
         metadata=metadata,
     )
+

@@ -11,7 +11,7 @@ from sklearn.cluster import KMeans
 warnings.filterwarnings('ignore', category=ConvergenceWarning, module='sklearn')
 
 # Import the ColorFeatures model
-from .models import ColorFeatures
+from app.api.v1.models.analyze import ColorFeatures
 
 # Keep ColorPalette for backward compatibility
 class ColorPalette(ColorFeatures):

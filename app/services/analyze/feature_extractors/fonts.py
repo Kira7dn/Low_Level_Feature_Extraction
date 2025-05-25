@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import HTTPException, status
 
 from app.services.font_detector import FontDetector
-from app.services.models import FontFeatures
+from app.api.v1.models.analyze import FontFeatures
 
 logger = logging.getLogger(__name__)
 

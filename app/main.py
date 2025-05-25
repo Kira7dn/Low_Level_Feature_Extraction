@@ -9,8 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import routers after path is set
-from app.routers.analyze import router as analyze_router
-from app.routers import dribbble
+from app.api.v1.endpoints import analyze, dribbble
 from app.core.config import settings
 
 def create_app():
@@ -49,7 +48,7 @@ def create_app():
         )
 
     # Register routers
-    app.include_router(analyze_router, prefix="/api/v1", tags=["analyze"])
+    app.include_router(analyze.router, prefix="/api/v1", tags=["analyze"])
     app.include_router(dribbble.router, prefix="/api/v1")
     
     # Debug: Print all routes

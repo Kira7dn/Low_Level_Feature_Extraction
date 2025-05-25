@@ -5,7 +5,7 @@ import numpy as np
 from typing import Any, Dict, List, Union, Optional
 import time
 
-from .models import TextFeatures, FontFeatures  # Import the new models
+from app.api.v1.models.analyze import TextFeatures, FontFeatures  # Import the new models
 
 class TextExtractor:
     @classmethod

@@ -3,7 +3,7 @@ import numpy as np
 import pytesseract
 from typing import Dict, List, Tuple, Optional
 
-from .models import FontFeatures  # Import the FontFeatures model
+from app.api.v1.models.analyze import FontFeatures  # Import the FontFeatures model
 
 class FontDetector:
     # List of common fonts to compare against

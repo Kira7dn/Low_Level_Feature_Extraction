@@ -5,7 +5,7 @@ import numpy as np
 from fastapi import HTTPException, status
 
 from app.services.text_extractor import TextExtractor
-from app.services.models import TextFeatures
+from app.api.v1.models.analyze import TextFeatures
 
 logger = logging.getLogger(__name__)
 
